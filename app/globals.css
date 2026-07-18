@@ -62,6 +62,19 @@
   inherits: true;
   initial-value: #282828;
 }
+/* Registered as a typed <number> so it has a GUARANTEED-VALID fallback: if the
+   assigned value below ever fails to parse on an engine (older Safari lacking the
+   math features it uses), a registered property falls back to this initial-value
+   (1) instead of becoming invalid — whereas an *unregistered* custom property with an
+   invalid value poisons every `calc(Npx * var(--scale-1440))` that references it,
+   collapsing them to 0/inherited. That collapse is exactly the bug this registration
+   guards against: at initial-value 1 the whole site simply renders at its ≤1440
+   design size, which is correct for any viewport ≤1440 anyway. */
+@property --scale-1440 {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
 
 :root {
   color-scheme: dark;
@@ -104,7 +117,16 @@
      var(--scale-1440))` is 28px up to 1440px wide and grows past it exactly like a
      `1.9444vw` value would (28/1440 = 1.9444%), which is the same math the
      percentage-based media widths already use. */
-  --scale-1440: max(1, calc(100vw / 1440px));
+  /* The ratio 100vw/1440px must NOT be written as a literal `calc(100vw / 1440px)`:
+     dividing a length by a length is a recent calc() addition that older Safari
+     (e.g. the 2017 iPad Pro's) rejects, which made this whole value invalid there —
+     collapsing every `calc(Npx * var(--scale-1440))` on the page (hero type/width,
+     header icon gap, all InfoModal padding/spacing/type) to 0 or the inherited
+     default. `tan(atan2(100vw, 1440px))` yields the identical unitless ratio using
+     only trigonometric functions (Safari 15.4+, and every other current engine),
+     with no length-by-length division. The @property registration above is the
+     final backstop if even that is unsupported. */
+  --scale-1440: max(1, tan(atan2(100vw, 1440px)));
 }
 
 :root[data-theme="light"] {

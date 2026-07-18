@@ -180,7 +180,7 @@
     position: absolute;
     top: 20px;
     right: 20px;
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .panel {
@@ -191,28 +191,28 @@
   }
 
   .title {
-    font-size: 28px;
+    font-size: 29px;
   }
 
   .subtitle {
-    font-size: 18px;
+    font-size: 21px;
   }
 
   .body {
-    font-size: 17px;
-    line-height: 26px;
+    font-size: 20px;
+    line-height: 29px;
     max-width: none;
   }
 
   .rolesHeading {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .rolesColumn {
-    font-size: 17px;
+    font-size: 19px;
   }
 
   .link {
-    font-size: 17px;
+    font-size: 20px;
   }
 }

@@ -166,29 +166,60 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
         : barBackground(fraction);
     };
 
-    // Chrome throttles/coalesces 'scroll' event dispatch during fast fling scrolling
-    // (unlike Safari, which fires it closer to every compositor frame), so calling
-    // apply() directly from the listener made the bar visibly lag behind the actual
-    // scroll position at speed. Deferring the read/write to the next
-    // requestAnimationFrame — at most once per rendered frame, however many scroll
-    // events land before it fires — keeps the bar's position in sync with the
-    // compositor's own frame timing on every browser.
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
+    // The bar's position must stay glued to the compositor's scroll offset every
+    // rendered frame, or it visibly jitters/trails the page as it scrolls. Driving
+    // apply() from 'scroll' events can't guarantee that: browsers coalesce and
+    // throttle scroll-event dispatch during fast fling / momentum scrolling — badly on
+    // touch (the 2017 iPad especially), and enough to notice on trackpads too — so the
+    // events land in sparse bursts and the bar lags the page in between. Scheduling a
+    // single rAF per scroll event (the previous approach) only inherits that same
+    // sparse cadence. Instead, a scroll KICKS OFF a self-perpetuating rAF loop that
+    // re-applies on every frame the browser paints — in lockstep with compositing,
+    // regardless of when scroll events happen to fire — for as long as the scroll
+    // offset keeps changing, then parks itself after a short idle so it costs nothing
+    // at rest. window.scrollY / innerHeight gate the work and neither forces layout,
+    // so parked/idle frames are cheap.
+    let rafId: number | null = null;
+    let lastScrollY = Number.NaN;
+    let lastInnerHeight = Number.NaN;
+    let idleFrames = 0;
+
+    const frame = () => {
+      const y = window.scrollY;
+      const h = window.innerHeight;
+      if (y !== lastScrollY || h !== lastInnerHeight) {
+        lastScrollY = y;
+        lastInnerHeight = h;
+        idleFrames = 0;
         apply();
-        ticking = false;
-      });
+      } else if (++idleFrames > 10) {
+        // ~10 still frames (~160ms): the fling has settled — stop until the next kick.
+        rafId = null;
+        return;
+      }
+      rafId = requestAnimationFrame(frame);
+    };
+
+    const kick = () => {
+      if (rafId === null) {
+        idleFrames = 0;
+        rafId = requestAnimationFrame(frame);
+      }
     };
 
     apply();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    window.addEventListener("scroll", kick, { passive: true });
+    // Resize can change the header/bar heights and page height with no scroll at all,
+    // so re-apply right away and (re)start the loop to settle into the new layout.
+    const onResize = () => {
+      apply();
+      kick();
+    };
+    window.addEventListener("resize", onResize);
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", kick);
+      window.removeEventListener("resize", onResize);
     };
   }, [theme]);
 
