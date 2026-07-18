@@ -29,15 +29,18 @@
   .header { height: 80px; }
 }
 
-/* Side inset pulled in from the shared .inset 80px to 36px for iPad-and-up-through
-   MacBook Air/Pro widths (769–1919px) — .header combines both classes on the same
-   element (`inset ${styles.header}`), and since CSS module injection order isn't
-   guaranteed (see the .desktop-only/.mobile-only comment in globals.css for the same
-   issue), !important is needed to reliably win over .inset regardless of source
-   order. ≤768px (iPad Mini and phones) already gets 20px from .inset itself;
-   ≥1920px (large desktop/5K) intentionally keeps .inset's 80px. */
-@media (min-width: 769px) and (max-width: 1919.98px) {
-  .header { padding-inline: 36px !important; }
+/* Side inset pulled in from the shared .inset 80px to 36px for iPad-and-up widths
+   (≥769px) — .header combines both classes on the same element (`inset
+   ${styles.header}`), and since CSS module injection order isn't guaranteed (see the
+   .desktop-only/.mobile-only comment in globals.css for the same issue), !important is
+   needed to reliably win over .inset regardless of source order. ≤768px (iPad Mini and
+   phones) already gets 20px from .inset itself.
+   --header-gap (not .inset's --content-gap) lets the header chrome track a wider 1920
+   column than the 1880 content below it, so the logo/sun/mail sit a little further out
+   toward the screen edges on big monitors; it's 0 below 1920, so this is just 36px
+   there, unchanged. */
+@media (min-width: 769px) {
+  .header { padding-inline: calc(var(--header-gap) + 36px) !important; }
 }
 
 .logo {
@@ -112,13 +115,14 @@
   height: calc(21.6px * var(--scale-1440));
 }
 
-/* The header's height is stepped and stops growing at 80px (see .header above), but
-   --scale-1440 keeps growing with the viewport — past ~4000px wide the continuous
-   icon sizes would overflow the fixed 80px bar (at 5K they'd be a 100px logo / 85px
-   icons even before the 10% sun/mail reduction). Freeze them here at the values they
-   reach at exactly 1920px (28 × 1920/1440 = 37.3, 21.6 × 1920/1440 = 28.8), so the
-   freeze is seamless at the breakpoint and the icons stay proportional to the 80px
-   header at every width above it. Logo keeps its 32:28 aspect (37 × 28/32 = 32.375). */
+/* --scale-1440 stops growing at the 1880 content cap (scale ≈1.31 — see globals.css),
+   so below 1920px the icons settle around logo 36.6 / sun+mail 28.2. At ≥1920px the
+   header steps up to its taller 80px chrome (see .header above), so bump the icons back
+   up to match that height — logo 37 / sun+mail 28.8 / gap 72 — the same values the
+   header used before the content cap existed, keeping the icons proportional to the
+   80px bar. Chrome (this + the height/inset above) is deliberately allowed to keep
+   responding to large displays even though the media content caps at 1880. Logo keeps
+   its 32:28 aspect (37 × 28/32 = 32.375). */
 @media (min-width: 1920px) {
   .logo svg { width: 37px; height: 32.375px; }
   .icon,

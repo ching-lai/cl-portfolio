@@ -71,8 +71,9 @@ export function Hero() {
   // as one connected sequence rather than two independent fades.
   const rebuildTextExit = useCallback(() => {
     const section = sectionRef.current;
+    const content = contentRef.current;
     const textExitDistance = textExitDistanceRef.current;
-    if (!section || textExitDistance <= 0) return;
+    if (!section || !content || textExitDistance <= 0) return;
 
     exitTimelineRef.current?.scrollTrigger?.kill();
     exitTimelineRef.current?.kill();
@@ -93,6 +94,15 @@ export function Hero() {
         start: "top top",
         end: `+=${textExitDistance}`,
         scrub: true,
+        // The dissolve only fades each split-character span's opacity — the <a>
+        // elements themselves stay full-opacity and full-size the whole time, so
+        // without this their hover/click targets remain live (and the underline
+        // hover animation still fires) even once the text has visually vanished.
+        // Flip the whole content block's hit-testing off exactly when the last
+        // character reaches 0 opacity, and back on if the user scrolls back up.
+        onUpdate: (self) => {
+          content.style.pointerEvents = self.progress >= 1 ? "none" : "auto";
+        },
       },
     });
     addDissolve(tl, bodyChars, 1);

@@ -1,9 +1,16 @@
 /* Vertical rhythm around a section's content. Figma uses ~80px above the first
    content row and ~100px below the last before the next project bar.
    scroll-margin-top keeps anchor-scrolled sections from landing under the fixed header
-   (60px — keep in sync with Header.module.css / ProjectBar.module.css). */
+   (60px — keep in sync with Header.module.css / ProjectBar.module.css).
+   position: relative makes the section the containing block for its own ProjectBar's
+   .line while that bar is in its pre-lock (position: absolute) state — so the bar
+   scrolls natively with the page instead of being positioned by JS every frame (see
+   the long comment on .line in ProjectBar.module.css). It must NOT be a containing
+   block for the bar once it locks (position: fixed) — relative alone isn't (only
+   transform/filter/will-change/contain would be), so fixed still pins to the viewport. */
 .section {
   scroll-margin-top: 60px;
+  position: relative;
 }
 
 /* The trailing 100px lives here (on .body, a sibling of the sticky .line), not on
@@ -14,6 +21,14 @@
    creating a premature gap before the next bar locked in. Moving the same padding to
    .body (still inside .section, so total section height is unchanged) fixes it. */
 .body {
+  /* Caps the media column at the --content-max design width and centers it on larger displays
+     (the page background fills the sides) so the content stops growing full-bleed. All
+     media widths are percentages of this column, so capping it here freezes them too;
+     below the cap it's < --content-max and so stays full width. Every project section's
+     desktop content lives in this .body, so this one cap covers them all (Uber
+     Partnerships is the exception — its own logo wall is already max-width-capped). */
+  max-width: var(--content-max);
+  margin-inline: auto;
   padding-block-start: calc(80px * var(--scale-1440));
   padding-block-end: calc(100px * var(--scale-1440));
   display: flex;

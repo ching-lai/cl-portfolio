@@ -60,27 +60,31 @@
 }
 
 /* Text block centered on the screen at its Figma width (626px), text left-aligned
-   inside it. Centered inside the full-viewport hero == centered over the 1440 page. */
+   inside it. Centered inside the full-viewport hero == centered over the 1440 page.
+   Sized off --hero-scale (not the site-wide --scale-1440): the width/gap scale in step
+   with .headline/.body below so the block's proportions and text-wrap ratio stay
+   consistent at every size — see --hero-scale in globals.css for why the hero gets its
+   own, more generous scale on very large displays. */
 .content {
   position: relative;
   z-index: 1;
   margin: auto;
   display: flex;
   flex-direction: column;
-  gap: calc(24px * var(--scale-1440));
-  width: calc(626px * var(--scale-1440));
+  gap: calc(24px * var(--hero-scale));
+  width: calc(626px * var(--hero-scale));
   max-width: 88vw;
 }
 
 .headline {
-  font-size: calc(40px * var(--scale-1440));
+  font-size: calc(40px * var(--hero-scale));
   font-weight: 500;
 }
 
 .body {
-  font-size: calc(28px * var(--scale-1440));
+  font-size: calc(28px * var(--hero-scale));
   font-weight: 400;
-  line-height: calc(46px * var(--scale-1440));
+  line-height: calc(46px * var(--hero-scale));
 }
 
 .body a {

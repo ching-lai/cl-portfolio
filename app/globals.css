@@ -125,8 +125,37 @@
      default. `tan(atan2(100vw, 1440px))` yields the identical unitless ratio using
      only trigonometric functions (Safari 15.4+, and every other current engine),
      with no length-by-length division. The @property registration above is the
-     final backstop if even that is unsupported. */
-  --scale-1440: max(1, tan(atan2(100vw, 1440px)));
+     final backstop if even that is unsupported.
+     The `min(100vw, --content-max)` clamps the scale so it STOPS growing once the
+     viewport passes the content cap (1880px → scale ≈1.31): past that the design was
+     reading as too large/full-bleed on big monitors, so type, spacing, icons and the
+     percentage-based media all freeze at their --content-max size and the content sits
+     in a centered column instead (see --content-max / --content-gap and .body/.inset). */
+  --scale-1440: max(1, tan(atan2(min(100vw, var(--content-max)), 1440px)));
+  /* Above these widths the layout stops scaling up and centers in a fixed column,
+     with the page background filling the sides — the chrome (hero art, page gradient,
+     project-bar + header backgrounds) still bleeds full width. Content — media,
+     section padding, project-bar text — caps at --content-max (1880); the header
+     chrome (logo + sun/mail) is allowed a little wider, out to 1920. Each *-gap is the
+     per-side letterbox margin, staying 0 until its cap is exceeded. Dividing by the
+     unitless 2 is valid on every engine (unlike the length/length division that broke
+     --scale-1440 above). */
+  --content-max: 1880px;
+  --content-gap: max(0px, calc((100vw - var(--content-max)) / 2));
+  --header-gap: max(0px, calc((100vw - 1920px) / 2));
+  /* The hero headline/body read as too small on very large displays once --scale-1440
+     started freezing at --content-max: the hero background art is full-bleed and keeps
+     growing with the viewport, but the text was frozen at its --content-max size, so it
+     shrank relative to all the extra canvas around it on 4K/5K+ monitors. This gives
+     the hero text its own scale that keeps growing past that freeze point instead —
+     capped at 20% larger than the current frozen size (1.2 × --content-max, i.e. the
+     text is allowed to grow as if the content cap were 20% bigger, purely for hero
+     type). Real MacBook Air/Pro widths (1440–1728px) are well under --content-max, so
+     `min(100vw, var(--hero-max))` is identical to `min(100vw, var(--content-max))`
+     there — hero text is UNCHANGED on those screens, only large external/desktop
+     displays (above --content-max) get the extra growth. */
+  --hero-max: calc(var(--content-max) * 1.2);
+  --hero-scale: max(1, tan(atan2(min(100vw, var(--hero-max)), 1440px)));
 }
 
 :root[data-theme="light"] {
@@ -303,10 +332,14 @@ a { color: inherit; text-decoration: none; }
 .grid--bleed { padding-inline: 0; }
 
 /* Figma's fixed 80px side margins (header, project bars, partnership wall).
-   Mobile frame (402px canvas) uses a fixed 20px margin instead. */
-.inset { padding-inline: 80px; }
+   Mobile frame (402px canvas) uses a fixed 20px margin instead.
+   --content-gap adds the letterbox margin above the content cap so inset content lines up
+   with the centered column rather than staying pinned to the full-bleed screen edge;
+   it's 0 below the cap, so this is unchanged there. (The header overrides this with
+   --header-gap so its chrome tracks the wider 1920 column — see Header.module.css.) */
+.inset { padding-inline: calc(var(--content-gap) + 80px); }
 @media (max-width: 768px) {
-  .inset { padding-inline: 20px; }
+  .inset { padding-inline: calc(var(--content-gap) + 20px); }
 }
 
 /* Sections render two parallel layouts (desktop Stage/Row arrangement vs. mobile's

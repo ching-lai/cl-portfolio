@@ -1,8 +1,11 @@
-/* Reserves this bar's flow-space (.line itself is always position: fixed and never
-   contributes to layout — see ProjectBar.tsx). Height matches .bar's min-height. */
+/* Reserves this bar's flow-space (.line is always positioned — absolute pre-lock,
+   fixed once locked — so it never contributes to layout; see ProjectBar.tsx). Height
+   matches .bar's min-height. */
 /* Stepped, not continuous — see the matching breakpoints on .bar below (and on
    Header.module.css's .header, which uses the same breakpoints but different,
-   intentionally-offset values). */
+   intentionally-offset values). The bar chrome keeps stepping up on large displays
+   (75px ≥1920) even though the media content caps at 1880 — the two are deliberately
+   decoupled (see the .bar inset comment below). */
 .spacer {
   height: 60px;
 }
@@ -18,23 +21,30 @@
 
 /* Locks directly below the fixed header (60px — keep in sync with Header.module.css)
    (Figma layer: "Project-Bar-Sticky") once its own <section> scrolls up to meet it,
-   and then STAYS locked permanently (top is JS-driven in ProjectBar.tsx — unlike
-   position: sticky, there's no release point, so it remains in place while the next
-   section's bar arrives and covers it, dimming via .dim as that happens). z-index sits
-   below the header (50) but above regular page content; later bars are later in the
-   DOM so they naturally paint on top of earlier ones, no manual stacking needed.
-   TRIAL: frosted glass (background + backdrop-filter set via inline style in
-   ProjectBar.tsx, not here — see comment there). */
-/* top stays 0 and position is driven entirely by `transform: translateY()` (set from
-   ProjectBar.tsx) rather than the `top` property. `top` changes force layout on every
-   scroll tick before they can paint; `transform` is compositor-only, so the browser
-   can move the bar on the GPU thread in lockstep with its own scroll compositing
-   instead of racing a step behind it — this is what was causing the visible
-   trailing/lag in Chrome specifically (Chrome does not promote fixed+top-animated
-   elements to their own layer as eagerly as Safari does). will-change hints the
-   browser to promote this to its own layer up front. */
+   and then STAYS locked while the next section's bar arrives and covers it, dimming
+   via .dim as that happens. z-index sits below the header (50) but above regular page
+   content; later bars are later in the DOM so they naturally paint on top of earlier
+   ones, no manual stacking needed. TRIAL: frosted glass (background + backdrop-filter
+   set via inline style in ProjectBar.tsx, not here — see comment there). */
+/* Positioning is a two-state "manual sticky", toggled by ProjectBar.tsx (NOT a
+   per-frame JS transform, which is what used to cause the scroll jitter):
+     - PRE-LOCK (default, here): position: absolute inside the section (which is
+       position: relative). An absolute box scrolls with its containing block, i.e.
+       natively with the page on the compositor — zero main-thread work, so it tracks
+       the page perfectly with no shimmer/trailing at any scroll speed. It sits at the
+       section's top (top: 0), directly over its own .spacer, which reserves the flow
+       space (the bar itself is out of flow in BOTH states, so the spacer is always
+       needed).
+     - LOCKED: ProjectBar.tsx flips it to position: fixed; top: <headerHeight> the
+       moment the section reaches the header, and leaves it there. Fixed is also
+       compositor-pinned (no per-frame JS), and because the switch is a one-time state
+       change rather than a value animated every tick, there's nothing left to lag.
+   We can't use raw `position: sticky` for this: sticky releases at its containing
+   block's (the section's) bottom edge and slides the bar up and out, which would break
+   the lock-and-cover/dim design — the bar must stay pinned across every later section.
+   will-change: transform keeps the bar on its own compositor layer in both states. */
 .line {
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
   top: 0;
@@ -100,15 +110,21 @@
   .bar { min-height: 75px; }
 }
 
-/* Side inset pulled in from the shared .inset 80px to 36px for iPad-and-up-through
-   MacBook Air/Pro widths (769–1919px) — .bar combines both classes on the same
-   element (`inset ${styles.bar}`), and since CSS module injection order isn't
-   guaranteed (see the .desktop-only/.mobile-only comment in globals.css for the same
-   issue), !important is needed to reliably win over .inset regardless of source
-   order. ≤768px (iPad Mini and phones) already gets 20px from .inset itself;
-   ≥1920px (large desktop/5K) intentionally keeps .inset's 80px. */
-@media (min-width: 769px) and (max-width: 1919.98px) {
-  .bar { padding-inline: 36px !important; }
+/* Side inset pulled in from the shared .inset 80px to 36px for iPad-and-up widths
+   (≥769px) — .bar combines both classes on the same element (`inset ${styles.bar}`),
+   and since CSS module injection order isn't guaranteed (see the
+   .desktop-only/.mobile-only comment in globals.css for the same issue), !important is
+   needed to reliably win over .inset regardless of source order. ≤768px (iPad Mini and
+   phones) already gets 20px from .inset itself.
+   --header-gap (the SAME variable the header uses, not --content-gap) keeps the bar's
+   title/Info aligned to the 1920 chrome column so the title sits directly under the
+   header logo and Info under the mail icon — the project bar and header read as one
+   system. The bar background itself still bleeds full width; only the text is inset.
+   It's 0 below 1920, so this is just 36px there, matching the header. The media content
+   below still caps at the narrower 1880 column (see .body) — chrome and content are
+   intentionally on different columns. */
+@media (min-width: 769px) {
+  .bar { padding-inline: calc(var(--header-gap) + 36px) !important; }
 }
 
 /* Brandon Grotesque's own font-file metrics are heavily ascent-weighted (measured via
@@ -144,6 +160,17 @@
   padding: 0;
   cursor: pointer;
   white-space: nowrap;
+}
+
+/* Large external displays only (NOT the 1280–1919.98px range, which covers MacBook
+   Air/Pro built-in screens — those keep the base 27px/25px sizes untouched): bump
+   title/Info type up 4px so it fills the taller 75px bar a bit more. translateY is
+   scaled by the same ratio as the font-size bump, since a given font's
+   ascent/descent proportions (see the .title comment above) scale linearly with
+   size. */
+@media (min-width: 1920px) {
+  .title { font-size: 31px; transform: translateY(4.59px); }
+  .info { font-size: 29px; transform: translateY(4.93px); }
 }
 
 /* Mobile frame: 56px bar, 22px/20px type. translateY nudges scaled proportionally

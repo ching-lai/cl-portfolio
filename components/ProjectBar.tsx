@@ -106,6 +106,14 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
     // sibling of <main> itself, not of the last section, so this needs no extra check.
     const nextSection = section.nextElementSibling;
 
+    // Tracks the bar's current positioning state so the position/top styles are
+    // written only when it actually crosses the lock threshold (a one-time state
+    // flip), never every frame — the whole point of the "manual sticky" approach is
+    // that scrolling itself moves the bar natively, with no per-frame JS writes to lag
+    // behind. null = not yet applied; true = locked (fixed); false = pre-lock (absolute).
+    let locked: boolean | null = null;
+    let appliedHeaderHeight = -1;
+
     const apply = () => {
       // .header's height and .line's own (.bar's min-height) both scale past 1440px
       // (see --scale-1440 in globals.css), so both are measured live rather than
@@ -113,16 +121,32 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
       const headerHeight = header?.getBoundingClientRect().height ?? 60;
       const barHeight = line.getBoundingClientRect().height;
 
-      // .line is always position: fixed (never contributes to layout), so "where
-      // would this bar be if it just scrolled normally" is wherever its spacer
-      // (which DOES sit in normal flow) currently renders on screen.
+      // "Where would this bar be if it just scrolled normally" is wherever its spacer
+      // (which sits in normal flow at the section's top) currently renders on screen.
+      // Once that reaches the header, the bar should lock; while it's still below, the
+      // bar rides the page natively in its pre-lock absolute state.
       const naturalTop = spacer.getBoundingClientRect().top;
-      // Once that natural position reaches the header, lock it there — and unlike
-      // position: sticky, there's no release condition, so it just stays locked
-      // (Math.max never goes back below headerHeight once naturalTop has passed it),
-      // remaining in place instead of being pushed off by the next bar.
-      const top = Math.max(headerHeight, naturalTop);
-      line.style.transform = `translateY(${top}px)`;
+      const shouldLock = naturalTop <= headerHeight;
+
+      // Flip the position only on a genuine state change (or if the header height
+      // changed under a locked bar, e.g. on resize past a breakpoint). absolute→fixed
+      // is seamless: at the threshold the section's top is at headerHeight, so the
+      // absolute bar (top: 0 within the section) and the fixed bar (top: headerHeight)
+      // occupy the same viewport row — no visible jump. Once fixed it STAYS fixed as
+      // later sections scroll past (naturalTop only gets more negative, so shouldLock
+      // stays true), which is what keeps it locked and covered; scrolling back up above
+      // the lock point flips it back to absolute so it rejoins the flow.
+      if (shouldLock !== locked || (shouldLock && headerHeight !== appliedHeaderHeight)) {
+        locked = shouldLock;
+        if (shouldLock) {
+          line.style.position = "fixed";
+          line.style.top = `${headerHeight}px`;
+          appliedHeaderHeight = headerHeight;
+        } else {
+          line.style.position = "absolute";
+          line.style.top = "0px";
+        }
+      }
 
       // Wash this bar's .dim overlay (a color overlay on top of the always-mounted bar,
       // not a fade of the bar's own opacity — that let the stacked bars underneath show
