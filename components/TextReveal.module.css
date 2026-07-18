@@ -1,0 +1,8 @@
+/* Hidden by default (before JS splits the text into lines) so there's no flash of
+   raw, unmasked text between first paint and the useEffect running. If JS never
+   runs, the noscript rule in TextReveal.tsx forces this back to visible. GSAP's
+   SplitText (mask: "lines") creates its own overflow-clipped line wrappers and
+   drives their reveal via inline styles, so no other CSS is needed here. */
+.pending {
+  opacity: 0;
+}

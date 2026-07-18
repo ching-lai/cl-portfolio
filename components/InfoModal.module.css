@@ -1,0 +1,218 @@
+/* Full-viewport frosted-glass overlay (Figma: "Info-Modal") — covers everything,
+   including the site header and sticky project bar, which is why this is portaled
+   to document.body rather than rendered inside ProjectBar's transformed .line
+   (position: fixed inside a transformed ancestor would be contained by that
+   ancestor instead of the viewport). z-index sits above the header (50) and every
+   project bar (20 and below). */
+/* Plain fixed viewport wrapper — deliberately has NO background of its own. Giving it
+   one (as an overscroll backstop) sat directly behind .scrollArea and got sampled by
+   .scrollArea's own backdrop-filter instead of the real page, flattening the glass
+   effect into plain white. overscroll-behavior-y: none on .scrollArea is what
+   actually prevents the page from peeking through on overscroll; this element just
+   needs to stay a true viewport containing block for .close (see .scrollArea's
+   comment below for why the filter and the scrolling live one level down). */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  color: #232323;
+}
+
+/* Fixed to the viewport (not .scrollArea's scroll content) so it stays put as the
+   info text scrolls, on every size except mobile — see the override below. Must be
+   a sibling of .scrollArea, not a descendant: an element with backdrop-filter
+   becomes the containing block for its own position: fixed descendants, which would
+   make .close scroll away with the content if it lived inside .scrollArea. z-index
+   is required here since .scrollArea is later in the DOM (and opaque) — without it,
+   .scrollArea painted over .close and hid it entirely. */
+.close {
+  position: fixed;
+  z-index: 1;
+  top: calc(40px * var(--scale-1440));
+  right: 5.556%;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: calc(28px * var(--scale-1440));
+  color: #232323;
+  background: none;
+  border: none;
+  cursor: pointer;
+  /* Underline + hover redraw come from the shared global `.draw-underline`. The modal
+     is always a light frosted panel (dark text on white glass) regardless of the page
+     theme, so pin the redraw palette to the light values here rather than letting it
+     follow --foreground/--info-underline, which flip to the dark-mode colors and would
+     make the underline nearly invisible on the glass in dark mode. */
+  --foreground: #232323;
+  --info-underline: #5c8f8f;
+}
+
+/* The actual frosted-glass + scroll layer. backdrop-filter is applied inline (see
+   InfoModal.tsx) rather than here — Turbopack's Lightning CSS strips it from
+   compiled CSS Modules in this Next.js version. */
+.scrollArea {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  /* "none" (not "contain") — this needs to kill the local rubber-band/bounce
+     animation itself, not just stop it from chaining to the page underneath.
+     "contain" still let the browser bounce .scrollArea's own content past its
+     bounds, which is what was flashing the real page through the gap at the top
+     edge on overscroll. The page is also locked via body overflow:hidden in
+     InfoModal.tsx as a second line of defense. */
+  overscroll-behavior-y: none;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.panel {
+  max-width: calc(737px * var(--scale-1440) + 2 * 5.556vw);
+  padding-block-start: calc(72px * var(--scale-1440));
+  padding-block-end: calc(80px * var(--scale-1440));
+  padding-inline: 5.556%;
+}
+
+.accent {
+  width: calc(34px * var(--scale-1440));
+  height: calc(8px * var(--scale-1440));
+  background: #232323;
+  margin-bottom: calc(32px * var(--scale-1440));
+}
+
+.title {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: calc(36px * var(--scale-1440));
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: 400;
+  font-size: calc(24px * var(--scale-1440));
+  color: #484848;
+  margin-top: calc(4px * var(--scale-1440));
+}
+
+.body {
+  margin-top: calc(30px * var(--scale-1440));
+  display: flex;
+  flex-direction: column;
+  gap: calc(34px * var(--scale-1440));
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: calc(23px * var(--scale-1440));
+  line-height: calc(34px * var(--scale-1440));
+  max-width: calc(737px * var(--scale-1440));
+}
+
+.roles {
+  margin-top: calc(40px * var(--scale-1440));
+}
+
+.rolesHeading {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: calc(24px * var(--scale-1440));
+}
+
+.rolesColumns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(20px * var(--scale-1440)) calc(80px * var(--scale-1440));
+  margin-top: calc(20px * var(--scale-1440));
+}
+
+.rolesColumn {
+  display: flex;
+  flex-direction: column;
+  gap: calc(4px * var(--scale-1440));
+  font-family: var(--font-body);
+  font-style: italic;
+  font-weight: 400;
+  font-size: calc(23px * var(--scale-1440));
+  color: #484848;
+}
+
+/* Inline link within a body paragraph (e.g. a press mention or video credit).
+   Uses the global `draw-underline` class for the same underline + hover-draw sweep
+   as Close and the homepage links, pinning the palette to the light values (like
+   .close) so it never follows --foreground/--info-underline into the dark-mode
+   colors when the modal is opened from dark mode. */
+.bodyLink {
+  --foreground: #232323;
+  --info-underline: #5c8f8f;
+  /* draw-underline's base underline (a real text-decoration on the <a>) cannot
+     render on these links: TextReveal's SplitText wraps every word in its own
+     inline-block <div>, and text-decoration skips atomic inline-level boxes — so
+     the base line only paints under the plain whitespace text nodes *between* the
+     words, showing up as stray underscores in the gaps (and nothing under the words
+     themselves). Drop it entirely and let the ::after copy — one continuous, un-split
+     text run overlaid on top, the same layer that draws the hover sweep — carry the
+     underline, revealed at rest instead of only on hover. Close/homepage links are
+     single words with no interior whitespace, so their base underline is unbroken
+     and they don't need this. */
+  text-decoration: none;
+}
+.bodyLink:global(.draw-underline)::after {
+  clip-path: inset(0 0 0 0);
+}
+
+/* Personal projects show a site link in place of the My Roles block. */
+.link {
+  display: block;
+  margin-top: calc(40px * var(--scale-1440));
+  width: fit-content;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: calc(23px * var(--scale-1440));
+  color: #232323;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  --foreground: #232323;
+  --info-underline: #5c8f8f;
+}
+
+/* No mobile Figma frame exists yet for this modal — fixed px sizing (not scaled)
+   keeps it readable on small screens in the meantime. */
+@media (max-width: 768px) {
+  .close {
+    /* Scrolls away with the content on mobile instead of staying pinned. */
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 18px;
+  }
+
+  .panel {
+    max-width: none;
+    padding-block-start: 64px;
+    padding-block-end: 48px;
+    padding-inline: 20px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .subtitle {
+    font-size: 18px;
+  }
+
+  .body {
+    font-size: 17px;
+    line-height: 26px;
+    max-width: none;
+  }
+
+  .rolesHeading {
+    font-size: 18px;
+  }
+
+  .rolesColumn {
+    font-size: 17px;
+  }
+
+  .link {
+    font-size: 17px;
+  }
+}

@@ -1,0 +1,107 @@
+/* Vertical rhythm around a section's content. Figma uses ~80px above the first
+   content row and ~100px below the last before the next project bar.
+   scroll-margin-top keeps anchor-scrolled sections from landing under the fixed header
+   (60px — keep in sync with Header.module.css / ProjectBar.module.css). */
+.section {
+  scroll-margin-top: 60px;
+}
+
+/* The trailing 100px lives here (on .body, a sibling of the sticky .line), not on
+   .section. Chromium's position: sticky doesn't correctly extend its containing-block
+   constraint to include padding that sits directly on the sticky element's own
+   parent — confirmed empirically: with the padding on .section, each project bar
+   released ~100px (exactly the padding amount) before its section actually ended,
+   creating a premature gap before the next bar locked in. Moving the same padding to
+   .body (still inside .section, so total section height is unchanged) fixes it. */
+.body {
+  padding-block-start: calc(80px * var(--scale-1440));
+  padding-block-end: calc(100px * var(--scale-1440));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(48px * var(--scale-1440));
+}
+
+/* A centered horizontal group of media. Gap is passed per-row (as a % of 1440). */
+.row {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* Media frames are transparent — the page background shows through any letterboxing
+   of transparent PNGs. No fill color (that was lighter than the page background). */
+.media,
+.placed {
+  position: relative;
+  overflow: hidden;
+}
+
+.media > video,
+.placed > video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The video's raw background is already #131313 (identical to the page), but Chrome
+   color-manages <video> slightly differently from CSS, leaving a faint rectangle.
+   Feathering the edges (over the video's own dark margins) dissolves that boundary so
+   the subject reads as floating on the page rather than sitting in a box. This is a
+   mask-image opacity fade (not filter: blur) — it only softens the edges, not the
+   card content in the middle. Fade zone widened from 6%/94% to 14%/86% per edge. */
+.feather > video {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent),
+    linear-gradient(0deg, transparent, #000 14%, #000 86%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent),
+    linear-gradient(0deg, transparent, #000 14%, #000 86%, transparent);
+  mask-composite: intersect;
+}
+
+/* Light mode's page background doesn't match the video's own dark margins (see
+   comment above — that matching is what the 14%/86% fade zone was tuned for on
+   dark), so the same fade was eating into the card's drop shadow near the edges.
+   Narrowed for light only. */
+:root[data-theme="light"] .feather > video {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent),
+    linear-gradient(0deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent),
+    linear-gradient(0deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+/* A relative canvas whose children are placed by percentage, reproducing Figma's
+   absolute layout for offset/overlapping groups. Aspect set per-use. */
+.stage {
+  position: relative;
+  width: 100%;
+}
+
+.placed {
+  position: absolute;
+}
+
+.caption {
+  font-size: calc(28px * var(--scale-1440));
+  font-weight: 400;
+  text-align: center;
+}
+
+.blurb {
+  font-size: calc(28px * var(--scale-1440));
+  font-weight: 400;
+  text-align: center;
+  max-width: calc(900px * var(--scale-1440));
+  margin-inline: auto;
+}
+
+/* Mobile frame: captions/blurbs are 18px (vs 28px desktop). */
+@media (max-width: 768px) {
+  .caption,
+  .blurb {
+    font-size: 18px;
+  }
+}

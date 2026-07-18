@@ -1,0 +1,127 @@
+/* Fixed to the top of the viewport for the whole page (Figma: "Header-Bar"). Starts
+   transparent over the hero; background-color is faded in by Header.tsx as the user
+   scrolls toward the first project bar's sticky lock point — that JS reads this
+   height live via getBoundingClientRect rather than a hardcoded constant, so it
+   doesn't need to be kept in sync by hand. Same padding-block as ProjectBar's .bar
+   (var(--space-2)) so the icons sit in the same amount of vertical padding as the
+   project titles do; height intentionally differs by a couple px per breakpoint
+   (see the height rule below vs. ProjectBar.module.css's .bar). */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Stepped, not continuous: 60px is the baseline (also covers 769–1279px, unchanged
+     from the original design), 58px for laptop windows, 80px from 1920px up (large
+     desktop / 5K) with no further growth beyond that. */
+  height: 60px;
+  padding-block: var(--space-2);
+  background-color: transparent;
+}
+@media (min-width: 1280px) and (max-width: 1439.98px) {
+  .header { height: 58px; }
+}
+@media (min-width: 1920px) {
+  .header { height: 80px; }
+}
+
+/* Side inset pulled in from the shared .inset 80px to 36px for iPad-and-up-through
+   MacBook Air/Pro widths (769–1919px) — .header combines both classes on the same
+   element (`inset ${styles.header}`), and since CSS module injection order isn't
+   guaranteed (see the .desktop-only/.mobile-only comment in globals.css for the same
+   issue), !important is needed to reliably win over .inset regardless of source
+   order. ≤768px (iPad Mini and phones) already gets 20px from .inset itself;
+   ≥1920px (large desktop/5K) intentionally keeps .inset's 80px. */
+@media (min-width: 769px) and (max-width: 1919.98px) {
+  .header { padding-inline: 36px !important; }
+}
+
+.logo {
+  background: none;
+  border: none;
+  padding: 8px;
+  margin: -8px;
+  cursor: pointer;
+  color: var(--foreground);
+  line-height: 0;
+}
+
+/* Icon components render an <svg> with fixed width/height attributes (the `size`
+   prop); CSS width/height on the svg itself override those attributes, which is how
+   these scale past 1440 without changing the icon components. */
+.logo svg {
+  width: calc(28px * var(--scale-1440));
+  height: calc(24.5px * var(--scale-1440));
+}
+
+.icons {
+  display: flex;
+  align-items: center;
+  /* Figma desktop: ~54px between the sun and mail glyphs; mobile frame measures ~38px. */
+  gap: calc(54px * var(--scale-1440));
+}
+@media (max-width: 768px) {
+  .icons { gap: 38px; }
+}
+
+/* Reset button wrapping Sun/Moon so it's a real button (a11y + click target)
+   without affecting the icon's own sizing below. */
+.themeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  line-height: 0;
+}
+
+/* Sun's className lands on its own <svg> root (the icon components spread
+   ...props onto <svg>), so .icon IS the svg element — sizing has to go directly on
+   it, not on a "descendant svg" that doesn't exist. Mail has no className of its
+   own; .iconLink is the <a> wrapping it, so its svg genuinely is a descendant.
+   21.6 = 24 reduced 10% (cl-logo is untouched, sun/mail only). */
+.icon {
+  color: var(--foreground);
+  width: calc(21.6px * var(--scale-1440));
+  height: calc(21.6px * var(--scale-1440));
+}
+
+/* Optical nudge: the moon glyph reads 1px left of the sun it swaps with; shift it
+   back so the toggle icon sits in the same spot in both themes. Literal 1px (not
+   scaled) — a hair of alignment, not a sized element. */
+.moon {
+  transform: translateX(1px);
+}
+
+.iconLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--foreground);
+  cursor: pointer;
+}
+
+.iconLink svg {
+  width: calc(21.6px * var(--scale-1440));
+  height: calc(21.6px * var(--scale-1440));
+}
+
+/* The header's height is stepped and stops growing at 80px (see .header above), but
+   --scale-1440 keeps growing with the viewport — past ~4000px wide the continuous
+   icon sizes would overflow the fixed 80px bar (at 5K they'd be a 100px logo / 85px
+   icons even before the 10% sun/mail reduction). Freeze them here at the values they
+   reach at exactly 1920px (28 × 1920/1440 = 37.3, 21.6 × 1920/1440 = 28.8), so the
+   freeze is seamless at the breakpoint and the icons stay proportional to the 80px
+   header at every width above it. Logo keeps its 32:28 aspect (37 × 28/32 = 32.375). */
+@media (min-width: 1920px) {
+  .logo svg { width: 37px; height: 32.375px; }
+  .icon,
+  .iconLink svg { width: 28.8px; height: 28.8px; }
+  .icons { gap: 72px; }
+}

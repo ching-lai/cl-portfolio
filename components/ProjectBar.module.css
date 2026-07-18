@@ -1,0 +1,158 @@
+/* Reserves this bar's flow-space (.line itself is always position: fixed and never
+   contributes to layout — see ProjectBar.tsx). Height matches .bar's min-height. */
+/* Stepped, not continuous — see the matching breakpoints on .bar below (and on
+   Header.module.css's .header, which uses the same breakpoints but different,
+   intentionally-offset values). */
+.spacer {
+  height: 60px;
+}
+@media (min-width: 1280px) and (max-width: 1439.98px) {
+  .spacer { height: 56px; }
+}
+@media (min-width: 1440px) and (max-width: 1919.98px) {
+  .spacer { height: 58px; }
+}
+@media (min-width: 1920px) {
+  .spacer { height: 75px; }
+}
+
+/* Locks directly below the fixed header (60px — keep in sync with Header.module.css)
+   (Figma layer: "Project-Bar-Sticky") once its own <section> scrolls up to meet it,
+   and then STAYS locked permanently (top is JS-driven in ProjectBar.tsx — unlike
+   position: sticky, there's no release point, so it remains in place while the next
+   section's bar arrives and covers it, dimming via .dim as that happens). z-index sits
+   below the header (50) but above regular page content; later bars are later in the
+   DOM so they naturally paint on top of earlier ones, no manual stacking needed.
+   TRIAL: frosted glass (background + backdrop-filter set via inline style in
+   ProjectBar.tsx, not here — see comment there). */
+/* top stays 0 and position is driven entirely by `transform: translateY()` (set from
+   ProjectBar.tsx) rather than the `top` property. `top` changes force layout on every
+   scroll tick before they can paint; `transform` is compositor-only, so the browser
+   can move the bar on the GPU thread in lockstep with its own scroll compositing
+   instead of racing a step behind it — this is what was causing the visible
+   trailing/lag in Chrome specifically (Chrome does not promote fixed+top-animated
+   elements to their own layer as eagerly as Safari does). will-change hints the
+   browser to promote this to its own layer up front. */
+.line {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 20;
+  will-change: transform;
+}
+
+.line::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  border-top: 1px solid var(--bar-line-color);
+}
+
+/* Tint painted on top of the whole bar (including its text), JS-driven from 0 to 70%
+   opacity as the next bar approaches — black in dark mode (darkens), --bar-dim-color
+   is #e6e6e6 in light mode (lightens/washes out instead, matching the flat light
+   background rather than going dark). Kept as a separate opaque overlay rather than
+   fading .line's own opacity, since .line stays at 100% opacity — fading the bar
+   itself let the stacked bars underneath show through it. pointer-events:none so it
+   doesn't block the Info button. */
+.dim {
+  position: absolute;
+  inset: 0;
+  background: var(--bar-dim-color);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Light-mode gradient-fade background variant (see isGradientFadeTheme in
+   ProjectBar.tsx; dark mode stays plain frosted glass on .line itself and never
+   renders this). Rendered as a separate backing layer rather than painting
+   background/backdrop-filter directly on .line, because its mask-image (fully
+   opaque at the top, fading linearly to fully transparent at the bottom) would
+   otherwise also fade out .bar's title/Info text. z-index: -1 relies on .line
+   already being a stacking context (it's position: fixed) to sit behind .bar's
+   unpositioned content without needing to touch .bar's own stacking. */
+.glass {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--grid-gutter);
+  min-height: 60px;
+  padding-block: var(--space-2);
+}
+@media (min-width: 1280px) and (max-width: 1439.98px) {
+  .bar { min-height: 56px; }
+}
+@media (min-width: 1440px) and (max-width: 1919.98px) {
+  .bar { min-height: 58px; }
+}
+@media (min-width: 1920px) {
+  .bar { min-height: 75px; }
+}
+
+/* Side inset pulled in from the shared .inset 80px to 36px for iPad-and-up-through
+   MacBook Air/Pro widths (769–1919px) — .bar combines both classes on the same
+   element (`inset ${styles.bar}`), and since CSS module injection order isn't
+   guaranteed (see the .desktop-only/.mobile-only comment in globals.css for the same
+   issue), !important is needed to reliably win over .inset regardless of source
+   order. ≤768px (iPad Mini and phones) already gets 20px from .inset itself;
+   ≥1920px (large desktop/5K) intentionally keeps .inset's 80px. */
+@media (min-width: 769px) and (max-width: 1919.98px) {
+  .bar { padding-inline: 36px !important; }
+}
+
+/* Brandon Grotesque's own font-file metrics are heavily ascent-weighted (measured via
+   canvas: at 27px, fontAscent 19 / fontDescent 8 — the two sum to exactly the
+   font-size, so line-height: 1 doesn't clip anything). None of our titles have true
+   descenders (g/j/p/q/y), so actual ink only uses ~0.3px of that 8px descent
+   allowance, leaving ~7.7px of empty space below the glyphs that isn't mirrored
+   above — that's what reads as "sitting high" even though align-items: center is
+   correctly centering the (asymmetric) line box itself. line-height: 1 alone can't
+   fix this since it only sets box height, not baseline position within it. The
+   translateY values below are computed from the font's real ascent/descent (via
+   canvas TextMetrics) to nudge the ink itself to the optical center. */
+.title {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 27px;
+  line-height: 1;
+  transform: translateY(4px);
+}
+
+/* Underline + hover redraw come from the shared global `.draw-underline` utility
+   (see globals.css) — the button carries both `info` and `draw-underline`, plus a
+   data-label. Only the type/layout of the Info label lives here now. */
+.info {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 25px;
+  line-height: 1;
+  transform: translateY(4.25px);
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Mobile frame: 56px bar, 22px/20px type. translateY nudges scaled proportionally
+   from the desktop values (which were derived from the font's real ascent/descent
+   via canvas TextMetrics — see comment above) since the same font-metric asymmetry
+   applies at any size. */
+@media (max-width: 768px) {
+  .spacer { height: 56px; }
+  .bar { min-height: 56px; }
+  .title { font-size: 22px; transform: translateY(3.26px); }
+  .info { font-size: 20px; transform: translateY(3.4px); }
+}

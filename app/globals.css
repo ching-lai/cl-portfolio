@@ -1,0 +1,305 @@
+/* ---------- Fonts ---------- */
+@font-face {
+  font-family: "Brandon Grotesque";
+  src: url("/fonts/BrandonGrotesque-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Brandon Grotesque";
+  src: url("/fonts/BrandonGrotesque-RegularItalic.woff2") format("woff2");
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Brandon Grotesque";
+  src: url("/fonts/BrandonGrotesque-Medium.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Brandon Grotesque";
+  src: url("/fonts/BrandonGrotesque-MediumItalic.woff2") format("woff2");
+  font-weight: 500; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Brandon Grotesque";
+  src: url("/fonts/BrandonGrotesque-Bold.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Brandon Grotesque";
+  src: url("/fonts/BrandonGrotesque-BoldItalic.woff2") format("woff2");
+  font-weight: 700; font-style: italic; font-display: swap;
+}
+
+/* Registering these as typed custom properties is what makes the theme-toggle fade
+   actually work (see the transition on :root below): a plain, unregistered custom
+   property change is a discrete token swap — any linear-gradient() built from it
+   (.page's background) recomputes instantly with no animation, even if the gradient
+   property itself has a `transition`, because most browsers don't interpolate between
+   two different gradient strings. A registered <color> property IS animatable on its
+   own, so :root's transition animates --background/--background-bottom/--foreground
+   frame-by-frame, and every var(--background) reference downstream (body, .page's
+   gradient) repaints using that live-interpolating value with no transition of its
+   own needed. */
+@property --background {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #131313;
+}
+@property --background-bottom {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0a181d;
+}
+@property --foreground {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #efefef;
+}
+/* Registered so the project-bar / header hairline fades with the theme toggle rather
+   than snapping (same reason as the colors above — see the transition on :root). */
+@property --bar-line-color {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #282828;
+}
+
+:root {
+  color-scheme: dark;
+  /* Applies regardless of which theme is active — data-theme only overrides the
+     custom properties' values below, not this. */
+  transition: --background 0.6s ease, --background-bottom 0.6s ease,
+    --foreground 0.6s ease, --bar-line-color 0.6s ease;
+  --background: #131313;
+  --background-bottom: #0a181d;
+  --foreground: #EFEFEF;
+  --chev-color: #606060;
+  --bar-line-color: #282828;
+  /* ProjectBar's .dim overlay (previous bar, as the next one arrives over it). */
+  --bar-dim-color: #000;
+  /* Color painted in the elastic overscroll band at the top/bottom of the page —
+     see the html rule below. Dark tone here matches the hero art's top edge. */
+  --overscroll-band: #282828;
+  /* The color the Info-link underline draws in on hover before settling back to
+     --foreground (see .info::after in ProjectBar.module.css). */
+  --info-underline: #AAFBFB;
+  --font-body: "Brandon Grotesque", Arial, Helvetica, sans-serif;
+  --grid-columns: 12;
+  --grid-margin: clamp(24px, 6vw, 80px);
+  --grid-gutter: 24px;
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 40px;
+  --space-5: 64px;
+  --space-6: 96px;
+  --space-7: 128px;
+  /* 1 at any viewport ≤1440px (the desktop design canvas — matches a 13" MacBook
+     Air's ~1440px-wide window exactly, so nothing changes there), then grows
+     linearly above it. Elements sized in percentages of 1440 (media rows, Stage
+     placements) already scale continuously past 1440 with no extra work; this
+     custom property extends the same continuous-scale behavior to things that were
+     fixed px (header/logo, project bar text, hero headline/body, partnership logos,
+     section padding) so they don't stay pinned to their 1440-design size and read as
+     tiny on 4K/5K monitors. Multiply any base px value by this: `calc(28px *
+     var(--scale-1440))` is 28px up to 1440px wide and grows past it exactly like a
+     `1.9444vw` value would (28/1440 = 1.9444%), which is the same math the
+     percentage-based media widths already use. */
+  --scale-1440: max(1, calc(100vw / 1440px));
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --background: #e6e6e6;
+  /* Solid, not a gradient, in light mode — same value as --background so the
+     linear-gradient() on .page resolves to a flat fill. */
+  --background-bottom: #e6e6e6;
+  --foreground: #232323;
+  --chev-color: #bbbbbb;
+  --bar-line-color: #cacaca;
+  --bar-dim-color: #e6e6e6;
+  --overscroll-band: #E0E0E0;
+  --info-underline: #5C8F8F;
+}
+
+* { box-sizing: border-box; padding: 0; margin: 0; }
+html { height: 100%; }
+/* overflow-x: clip (not hidden) — hidden on html/body forces body into its own
+   scroll container, which silently breaks position: sticky for every descendant. */
+html, body { max-width: 100vw; overflow-x: clip; }
+/* Native elastic rubber-band is left ON (overscroll-behavior-y default). The band a
+   top/bottom overscroll opens is the root scroller's reveal area, which paints the
+   root scroller's own background — NOT any in-page content, which stays clipped to
+   the scrollable range. So the fix for the "hard top edge of the hero art" seam that
+   the bounce used to expose is to make that reveal color match the art's dark tone:
+   the seam between the art and the band becomes invisible. --overscroll-band also
+   backstops a deep (>150px) fling at either end with a color that reads as
+   intentional rather than a flash of some other layer.
+
+   Chrome and Safari disagree on WHICH element paints that band: Blink uses <html>,
+   WebKit uses <body>. So the band color goes on BOTH. This is safe because the
+   actual page background is painted by .page (a full-height wrapper — see below),
+   which covers <body> edge to edge at rest; <body>'s own background is never visible
+   except in the overscroll band, so co-opting it for the band color changes nothing
+   at rest. (Verified: .page height == body scrollHeight, top 0, full width.) */
+html,
+body {
+  background: var(--overscroll-band);
+}
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--foreground);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+a { color: inherit; text-decoration: none; }
+
+/* The site fills the viewport (content scales up on larger screens) with fixed 80px
+   side margins, so the header icons and project titles sit 80px from the screen edge
+   at every desktop size rather than being pushed inward by a centered max-width. */
+.page {
+  position: relative;
+  width: 100%;
+  /* Top of the page (--background) to the very bottom, where the footer sits
+     (--background-bottom). A plain linear-gradient on a block element spans that
+     element's own full rendered height by default, so this naturally covers exactly
+     the page's total height with no extra sizing needed. Each ProjectBar samples
+     this same gradient at its own fixed page position (see ProjectBar.tsx) to match
+     it — its GRADIENT_TOP/GRADIENT_BOTTOM constants must be kept in sync with these
+     two variables per theme. */
+  background: linear-gradient(to bottom, var(--background), var(--background-bottom));
+}
+
+/* Match Figma's hairline underlines instead of the browser's thick default. */
+.u {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* ---------- Animated "redraw" underline (shared: Info links, hero body links,
+   footer social links) ----------
+   At rest: a 1px hairline underline in the text color. On hover it vanishes
+   instantly and ::after redraws it left-to-right in --info-underline, holds, then
+   settles to --foreground.
+
+   ::after is a transparent-glyph copy of the label (content: attr(data-label))
+   stacked exactly over the real text, so the line it draws is a genuine
+   text-decoration underline at the font's own underline position — it lands
+   pixel-identical to the resting underline with no hand-tuned offset to drift.
+
+   Requirements for any element using this class:
+     - a data-label attribute equal to its visible text (feeds ::after)
+     - a single-line target. An inline target that wraps to two lines would put the
+       overlay's rectangle across both lines and misalign it; the hero body links
+       are single-line at the design width, and the whole effect is gated to
+       hover-capable pointers below, so touch/mobile wrapping never triggers it. */
+.draw-underline {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+/* 0-specificity (via :where) so a target that sets its own position keeps it — the
+   InfoModal's Close button is position: fixed and must stay pinned to the viewport.
+   Static targets (the Info button, hero/footer links) still pick this up as their
+   containing block for the ::after overlay. */
+:where(.draw-underline) {
+  position: relative;
+}
+.draw-underline::after {
+  content: attr(data-label);
+  position: absolute;
+  /* Vertically CENTER the copy rather than inset:0 to the box. For an inline target
+     with a tall line-height (the hero body links: 28px font in a 46px line box), the
+     element's box is only font-tall, so inset:0 would drop the overlay's underline
+     ~9px below the real text's underline. The real text's line box is centered on the
+     inline box, so centering the copy's line box the same way makes them coincide.
+     For the line-height:1 / flex targets (Info, footer) the box already equals the
+     line box, so centering is a no-op there — this stays pixel-identical. */
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--foreground);
+  -webkit-text-fill-color: transparent;
+  clip-path: inset(0 100% 0 0);
+}
+@media (hover: hover) {
+  .draw-underline:hover {
+    text-decoration-color: transparent;
+  }
+  .draw-underline:hover::after {
+    animation: drawUnderline 1158ms both;
+  }
+}
+
+/* Percentages are of the 1158ms above: 0–54.06% draws (626ms, fast in with a long
+   gentle ease-out tail), 54.06–66.15% holds the draw color (140ms) so it registers
+   before it starts leaving, 66.15–100% fades to the text color (392ms). Duration and
+   stops are identical across themes — only the draw color (--info-underline) and the
+   fade target (--foreground) swap per theme, so the motion feels the same in light
+   and dark. */
+@keyframes drawUnderline {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    text-decoration-color: var(--info-underline);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.2, 1);
+  }
+  54.06%,
+  66.15% {
+    clip-path: inset(0 0 0 0);
+    text-decoration-color: var(--info-underline);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    text-decoration-color: var(--foreground);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .draw-underline:hover {
+    text-decoration-color: var(--foreground);
+  }
+  .draw-underline:hover::after {
+    animation: none;
+  }
+}
+
+.grid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  column-gap: var(--grid-gutter);
+  padding-inline: var(--grid-margin);
+}
+.grid--bleed { padding-inline: 0; }
+
+/* Figma's fixed 80px side margins (header, project bars, partnership wall).
+   Mobile frame (402px canvas) uses a fixed 20px margin instead. */
+.inset { padding-inline: 80px; }
+@media (max-width: 768px) {
+  .inset { padding-inline: 20px; }
+}
+
+/* Sections render two parallel layouts (desktop Stage/Row arrangement vs. mobile's
+   distinct — not just scaled — arrangement per the mobile Figma frame) and toggle
+   between them at the same 768px breakpoint used above. display:contents on the
+   active one keeps it from introducing an extra box into the surrounding flex/grid
+   context. !important is required: these classes are combined with each section's
+   own CSS-module class (e.g. `${styles.body} desktop-only`), which has equal
+   selector specificity and sets its own `display` — module injection order isn't
+   guaranteed, so without !important the module's display can unpredictably win over
+   this toggle (confirmed: .body's display:flex was beating .desktop-only's
+   display:none at the mobile breakpoint). */
+.mobile-only { display: none !important; }
+.desktop-only { display: contents !important; }
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+  .mobile-only { display: contents !important; }
+}

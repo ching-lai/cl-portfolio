@@ -1,0 +1,72 @@
+.wrap {
+  /* Extra breathing room around the logo wall (Figma has generous vertical space).
+     Bottom padding: 40px + 100px additional = 140px below the last logo row. */
+  padding-block: calc(64px * var(--scale-1440)) calc(140px * var(--scale-1440));
+  display: flex;
+  flex-direction: column;
+  gap: calc(96px * var(--scale-1440));
+}
+
+/* Flex-wrap (not grid) so a partial last row (Hilton/Foursquare/Capital One/Baidu)
+   is centered rather than left-aligned. Five cells per row.
+   Gaps reduced another 10% (72px/21.6px -> 64.8px/19.44px) and inset pushed another
+   15% further from the section's normal 80px edge (was +8px, now +21.2px) than the
+   title/blurb above it. */
+/* Capping the row's own width (rather than letting 5 columns stretch across the full
+   section) is what actually controls the space between logos — each column was
+   filling 1/5 of the full content width regardless of how narrow the logo inside it
+   was, so most of the "gap" was empty column padding, not the explicit gap value. */
+.logos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(64.8px * var(--scale-1440)) calc(19.44px * var(--scale-1440));
+  padding-inline: calc(21.2px * var(--scale-1440));
+  width: 100%;
+  max-width: calc(1100px * var(--scale-1440));
+  margin-inline: auto;
+}
+
+.cell {
+  flex: 0 0 calc((100% - 4 * 19.44px * var(--scale-1440)) / 5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* width: 100% (not auto) is load-bearing: each logo <Image> has fixed intrinsic
+   dimensions (e.g. 144×49). With width: auto the image renders at that intrinsic px
+   size, and max-height can only cap it *down* — so past the point where the scaling
+   max-height exceeds a logo's intrinsic height (~2900px+ wide), nothing binds and the
+   logo snaps back to its tiny intrinsic size on a huge screen. width: 100% makes the
+   image always try to fill the (percentage-width, so itself-scaling) cell, so the
+   scaling max-width / max-height are always the binding constraints and the logos
+   scale up proportionally. object-fit: contain (set inline on the Image) keeps every
+   logo's aspect ratio inside that box, so the base look is unchanged — at ≤1440 the
+   same 70% / 43px caps bind either way. */
+.logo {
+  width: 100%;
+  height: auto;
+  max-width: 70%;
+  /* Reduced another 10% from 47.84px. */
+  max-height: calc(43.06px * var(--scale-1440));
+}
+
+/* Mobile frame: 4 logos per row (not 5), smaller max-height, tighter gaps, and much
+   less vertical breathing room around the wall than desktop. */
+@media (max-width: 768px) {
+  .wrap {
+    padding-block: 40px 60px;
+    gap: 40px;
+  }
+  .logos {
+    gap: 30px 14px;
+    padding-inline: 0;
+  }
+  .cell {
+    flex: 0 0 calc((100% - 3 * 14px) / 4);
+  }
+  .logo {
+    max-height: 23px;
+  }
+}

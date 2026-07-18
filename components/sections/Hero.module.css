@@ -1,0 +1,170 @@
+/* Full-viewport hero so the chevron sits at the bottom of the screen and the first
+   project bar falls below the fold. The hero itself breaks out of the centered 1440
+   page to span the full viewport width, so the background art is full-bleed to the
+   screen edges at every size. */
+.hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
+}
+
+.bgLeft,
+.bgRight {
+  position: absolute;
+  top: 0;
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Full-bleed to the screen edges, scaling with the viewport (Figma proportions:
+   left 957/1440 = 66.46vw, right 408/1440 = 28.33vw). */
+.bgLeft {
+  left: 0;
+  width: 66.46vw;
+  aspect-ratio: 957 / 773;
+}
+
+.bgRight {
+  right: 0;
+  width: 28.33vw;
+  aspect-ratio: 408 / 983;
+}
+
+/* The entrance zoom/fade (Hero.tsx, via gsap.from) lives on this inner wrapper so it
+   never fights over xPercent/opacity with the outer element's scroll-scrubbed exit
+   tween. Only opacity is preset here (not transform) so there's no flash at full
+   opacity before that script runs, while leaving GSAP as the sole owner of
+   `transform` — pre-setting a CSS transform here caused GSAP's xPercent/scale to
+   compose on top of it into a broken double offset. The noscript fallback in
+   Hero.tsx restores visibility if JS never runs. */
+.bgInner {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* Mobile: drop the right image, keep the left one anchored to the screen edge. */
+@media (max-width: 768px) {
+  .bgRight {
+    display: none;
+  }
+  .bgLeft {
+    width: 100vw;
+  }
+}
+
+/* Text block centered on the screen at its Figma width (626px), text left-aligned
+   inside it. Centered inside the full-viewport hero == centered over the 1440 page. */
+.content {
+  position: relative;
+  z-index: 1;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: calc(24px * var(--scale-1440));
+  width: calc(626px * var(--scale-1440));
+  max-width: 88vw;
+}
+
+.headline {
+  font-size: calc(40px * var(--scale-1440));
+  font-weight: 500;
+}
+
+.body {
+  font-size: calc(28px * var(--scale-1440));
+  font-weight: 400;
+  line-height: calc(46px * var(--scale-1440));
+}
+
+.body a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* SplitText (TextReveal) wraps every word/character of the link text in its own
+   display: inline-block div for the letter-dissolve animation. Underlines don't
+   propagate through atomic inline-level boxes like inline-block, so without this the
+   <a>'s own text-decoration never actually paints — the link is still clickable, but
+   visually indistinguishable from plain text. Re-applying the decoration directly to
+   each of those divs makes every character draw its own underline segment instead. */
+.body a div {
+  text-decoration: inherit;
+}
+
+/* Pinned toward the bottom of the hero, horizontally centered. 44px frame around the
+   icon for the tap target. margin-block-end is 40px less than the tap target's own
+   frame would otherwise center it at, pulling the icon 40px closer to the bottom
+   edge of the screen. */
+.chevron {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  margin-block-end: calc(8px * var(--scale-1440));
+  background: none;
+  border: none;
+  color: var(--chev-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(44px * var(--scale-1440));
+  height: calc(44px * var(--scale-1440));
+}
+
+/* ChevDown has no className of its own, so its <svg> is a genuine descendant here
+   (unlike Header's Sun icon — see the comment in Header.module.css). Fixed (not
+   scaled by --scale-1440): scaling made this read as ~29px instead of 24px on wide
+   desktop viewports. */
+.chevron svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Mobile frame: left-aligned (not centered) text block, positioned by percentage of
+   the hero's own height (headline top 217/874 = 24.8%, body follows with an 8px gap
+   per the frame), and a chevron pinned near the true bottom (8px, not 48px). Content
+   switches to absolute positioning here since flex/margin:auto centering can't give
+   independent top offsets for headline/body while still bottom-pinning the chevron. */
+@media (max-width: 768px) {
+  .content {
+    position: absolute;
+    top: 24.8%;
+    left: 20px;
+    right: 20px;
+    width: auto;
+    /* Real phones (≤~666px) never hit this cap, so their full-width reflow is
+       unaffected — it only kicks in for wider viewports still routed to the mobile
+       layout by the 768px breakpoint (e.g. iPad Mini at 768px), where the text was
+       stretching edge-to-edge instead of staying a readable column like desktop's. */
+    max-width: 626px;
+    margin-inline: auto;
+    gap: 8px;
+  }
+
+  .headline {
+    font-size: 36px;
+  }
+
+  .body {
+    font-size: 24px;
+    line-height: 37px;
+  }
+
+  .chevron {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    align-self: unset;
+    transform: translateX(-50%);
+    margin-block-end: 0;
+  }
+}

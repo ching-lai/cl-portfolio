@@ -1,0 +1,51 @@
+.footer {
+  /* Bottom pulled in 30px from --space-5 (64px → 34px), tightening the gap between
+     the links/credit and the bottom of the screen. Top unchanged. */
+  padding-block: var(--space-6) calc(var(--space-5) - 30px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* Side inset pulled in from the shared .inset 80px to 36px for iPad-and-up-through
+   MacBook Air/Pro widths (769–1919px) — .footer combines both classes on the same
+   element (`inset ${styles.footer}`), and since CSS module injection order isn't
+   guaranteed (see the .desktop-only/.mobile-only comment in globals.css for the same
+   issue), !important is needed to reliably win over .inset regardless of source
+   order. ≤768px (iPad Mini and phones) already gets 20px from .inset itself;
+   ≥1920px (large desktop/5K) intentionally keeps .inset's 80px. */
+@media (min-width: 769px) and (max-width: 1919.98px) {
+  .footer { padding-inline: 36px !important; }
+}
+
+/* gap tuned so top-to-top spacing between links measures 49px, matching Figma
+   (Instagram/LinkedIn/X were at document y 17335/17384/17433 — 49px apart). */
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Resting underline + hover redraw come from the shared global `.draw-underline`
+   utility (see globals.css); each link also carries a data-label. */
+.link {
+  font-size: 24px;
+  font-weight: 400;
+  width: fit-content;
+}
+
+.credit {
+  font-size: 20px;
+  font-weight: 400;
+  color: #888;
+}
+
+/* Mobile frame: 20px links (top-to-top spacing measures ~44px vs desktop's 49px),
+   18px credit text. */
+@media (max-width: 768px) {
+  .link { font-size: 20px; }
+  .links { gap: 16px; }
+  .credit { font-size: 18px; }
+}
