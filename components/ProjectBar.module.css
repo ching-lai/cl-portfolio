@@ -62,33 +62,18 @@
   border-top: 1px solid var(--bar-line-color);
 }
 
-/* Tint painted on top of the whole bar (including its text), JS-driven from 0 to 70%
-   opacity as the next bar approaches — black in dark mode (darkens), --bar-dim-color
-   is #e6e6e6 in light mode (lightens/washes out instead, matching the flat light
-   background rather than going dark). Kept as a separate opaque overlay rather than
-   fading .line's own opacity, since .line stays at 100% opacity — fading the bar
-   itself let the stacked bars underneath show through it. pointer-events:none so it
-   doesn't block the Info button. */
+/* Tint painted on top of the whole bar (including its text), JS-driven as the next
+   bar approaches — dark washes part way to black (see DIM_MAX_DARK in
+   ProjectBar.tsx), light washes all the way to opaque #e6e6e6 (DIM_MAX_LIGHT), so it
+   reads as the next bar's own #e6e6e6 fill physically covering it rather than a fade.
+   Kept as a separate opaque overlay rather than fading .line's own opacity, since
+   .line stays at 100% opacity — fading the bar itself let the stacked bars underneath
+   show through it. pointer-events:none so it doesn't block the Info button. */
 .dim {
   position: absolute;
   inset: 0;
   background: var(--bar-dim-color);
   opacity: 0;
-  pointer-events: none;
-}
-
-/* Light-mode gradient-fade background variant (see isGradientFadeTheme in
-   ProjectBar.tsx; dark mode stays plain frosted glass on .line itself and never
-   renders this). Rendered as a separate backing layer rather than painting
-   background/backdrop-filter directly on .line, because its mask-image (fully
-   opaque at the top, fading linearly to fully transparent at the bottom) would
-   otherwise also fade out .bar's title/Info text. z-index: -1 relies on .line
-   already being a stacking context (it's position: fixed) to sit behind .bar's
-   unpositioned content without needing to touch .bar's own stacking. */
-.glass {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
   pointer-events: none;
 }
 

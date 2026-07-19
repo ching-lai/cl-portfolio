@@ -25,62 +25,34 @@ interface ProjectBarProps {
 // new palette instantly. The scroll-driven `fraction` is baked in as a literal
 // color-mix ratio, so scrolling still repaints the bar immediately: there is no CSS
 // transition on the bar itself; the only thing that animates is the custom properties
-// during a theme change. (Light is solid — top === bottom — so `fraction` has no
-// visible effect there, but the same expression is used for both themes.)
+// during a theme change. Same treatment for both themes — dark's --background and
+// --background-bottom differ (a real top↔bottom gradient), light's are both #e6e6e6
+// (see :root[data-theme="light"] in globals.css), so this naturally renders as a flat
+// solid fill with no gradient in light mode, no theme branching needed here.
 function barBackground(fraction: number): string {
   const bottomPct = Math.round(fraction * 100);
   // Inner mix: top↔bottom of the gradient by scroll position. Outer mix folds in 3%
-  // transparent to land the same 0.97 alpha the frosted fill used before.
+  // transparent to land a 0.97 alpha frosted fill.
   return `color-mix(in srgb, transparent 3%, color-mix(in srgb, var(--background-bottom) ${bottomPct}%, var(--background)))`;
 }
-
-// Light-mode (gradient-fade) frosted-glass fill: uniform #e6e6e6 at 0.90 alpha (light's
-// --background and --background-bottom are both #e6e6e6, so the gradient math is only
-// here to mirror barBackground's shape — the scroll fraction has no visible color
-// effect in light mode). Same gradient math as barBackground, but folds in a little
-// transparency so the .glass layer's backdrop-filter blur still shows through — a
-// fully opaque fill would hide it entirely.
-function barGlassBackground(fraction: number): string {
-  const bottomPct = Math.round(fraction * 100);
-  return `color-mix(in srgb, transparent 10%, color-mix(in srgb, var(--background-bottom) ${bottomPct}%, var(--background)))`;
-}
 // How far (in px) before the *next* bar reaches its own lock point this one starts
-// dimming, finishing at 50% opacity exactly as the next bar arrives and covers it.
+// covering, finishing exactly as the next bar arrives and covers it.
 const FADE_DISTANCE = 80;
 
-// How far the .dim overlay washes a bar as the next bar finishes covering it.
-// Dark: --bar-dim-color is black, so this is how black the covered bar gets.
+// How far the .dim overlay washes a bar as the next bar finishes covering it — a
+// color overlay on top of the always-mounted bar, not a fade of the bar's own opacity
+// (that would let the stacked bar underneath show through it).
+// Dark: --bar-dim-color is black; only wash it part way — slightly darker while
+// covered, not heavily dimmed.
 const DIM_MAX_DARK = 0.8;
-// Light: --bar-dim-color is the page color (#e6e6e6). Wash the covered bar ALL the way
-// to it (opacity clamps at 1), and the >1 multiplier gets it there slightly ahead of
-// the coverage — so the covered title dissolves into the background instead of showing
-// through the next bar's transparent gradient bottom. (Dark bars are opaque and never
-// had that bleed, so only light needs the full wash.)
-const DIM_WASH_LIGHT = 1.3;
-
-// Dark mode keeps the original uniformly-opaque frosted glass. Light mode uses
-// the gradient-fade treatment instead: 100% opacity at the very top, fading
-// linearly to fully transparent by the bottom (see .glass in the CSS module and
-// GLASS_MASK below). To trial gradient-fade in dark mode too (or frosted in
-// light), just change this function — the two code paths below are fully
-// independent (separate .glass layer/ref), so neither needs touching to change
-// the other.
-function isGradientFadeTheme(theme: "dark" | "light") {
-  return theme === "light";
-}
-// Linear fade from fully opaque at the top to fully transparent at the bottom —
-// no solid hold at the top.
-const GLASS_MASK = "linear-gradient(to bottom, black 0%, transparent 100%)";
-// Light-mode frosted glass: a plain blur over the near-opaque fill did nothing
-// visible (see barGlassBackground). With the translucent fill, saturate() pushes the
-// colors of the blurred page content showing through the frost, giving the vibrant
-// glassy look rather than a grey blur. Dark mode keeps its own plain blur(16px) inline.
-const GLASS_BACKDROP = "blur(25px) saturate(2.1)";
+// Light: --bar-dim-color is #e6e6e6 (the page color) — wash it all the way to fully
+// opaque, so this reads as the next bar's #e6e6e6 fill physically covering it rather
+// than a dim/fade effect.
+const DIM_MAX_LIGHT = 1;
 
 export function ProjectBar({ title, info = true, infoContent, infoTitle }: ProjectBarProps) {
   const spacerRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
-  const glassRef = useRef<HTMLDivElement>(null);
   const dimRef = useRef<HTMLDivElement>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const { theme } = useTheme();
@@ -88,17 +60,11 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
   useEffect(() => {
     const spacer = spacerRef.current;
     const line = lineRef.current;
-    const glass = glassRef.current;
     const dim = dimRef.current;
     const section = spacer?.closest("section");
     const page = document.querySelector<HTMLElement>(".page");
     const header = document.querySelector("header");
     if (!spacer || !line || !dim || !section || !page) return;
-    const gradientFade = isGradientFadeTheme(theme);
-    // In frosted mode .line itself carries the background, so no .glass is
-    // rendered and this ref is legitimately null — only required in gradient-fade mode.
-    if (gradientFade && !glass) return;
-    const backgroundTarget = gradientFade ? glass! : line;
 
     // The next sibling <section> (if any) is the next project's bar — Byeeee (the
     // last one) has no next sibling within <main>, so it never dims. Footer is a
@@ -147,23 +113,17 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
         }
       }
 
-      // Wash this bar's .dim overlay (a color overlay on top of the always-mounted bar,
-      // not a fade of the bar's own opacity — that let the stacked bars underneath show
-      // through) as the next bar approaches its lock point and paints over this one:
-      //  - dark: part way to black — slightly darker while covered, not heavily dimmed.
-      //  - light: all the way to the page color, slightly ahead of the coverage, so the
-      //    covered title dissolves into the background rather than bleeding through the
-      //    next bar's transparent gradient bottom. See DIM_MAX_DARK / DIM_WASH_LIGHT.
+      // Wash this bar's .dim overlay (see DIM_MAX_DARK / DIM_MAX_LIGHT above) as the
+      // next bar approaches its lock point and paints over this one — dark washes
+      // part way to black, light washes all the way to #e6e6e6 so it reads as the
+      // next bar's own fill physically covering it, not a fade.
       let dimOpacity = 0;
       let fullyCovered = false;
       if (nextSection) {
         const nextNaturalTop = nextSection.getBoundingClientRect().top;
         const distanceUntilNextLocks = nextNaturalTop - headerHeight;
         const progress = Math.min(1, Math.max(0, (FADE_DISTANCE - distanceUntilNextLocks) / FADE_DISTANCE));
-        dimOpacity =
-          theme === "light"
-            ? Math.min(1, progress * DIM_WASH_LIGHT)
-            : progress * DIM_MAX_DARK;
+        dimOpacity = progress * (theme === "light" ? DIM_MAX_LIGHT : DIM_MAX_DARK);
         fullyCovered = progress >= 1;
       }
       dim.style.opacity = String(dimOpacity);
@@ -184,9 +144,7 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
       const stuckCenterOffset = headerHeight + barHeight / 2;
       const pageHeight = page.getBoundingClientRect().height;
       const fraction = Math.min(1, Math.max(0, (window.scrollY + stuckCenterOffset) / pageHeight));
-      backgroundTarget.style.background = gradientFade
-        ? barGlassBackground(fraction)
-        : barBackground(fraction);
+      line.style.background = barBackground(fraction);
     };
 
     // The bar's position must stay glued to the compositor's scroll offset every
@@ -256,36 +214,16 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
         className={styles.line}
         // backdrop-filter is set via inline style rather than the CSS module: Turbopack's
         // Lightning CSS processor silently strips it (both prefixed and unprefixed) from
-        // compiled CSS Modules in this Next.js version — confirmed by testing the same
-        // declaration via inline style vs. the module, only the inline one survives.
-        // background starts as a fallback (top-of-gradient color) and is immediately
-        // corrected by the effect above to track the page gradient as you scroll.
-        // In gradient-fade mode (light theme) .line itself stays transparent — the
-        // .glass child below carries the background/blur/mask instead (see
-        // isGradientFadeTheme).
-        style={
-          !isGradientFadeTheme(theme)
-            ? {
-                background: barBackground(0),
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-              }
-            : undefined
-        }
+        // compiled CSS Modules in this Next.js version. background starts as a fallback
+        // (top-of-gradient color) and is immediately corrected by the effect above to
+        // track the page gradient as you scroll. Same treatment for both themes — see
+        // barBackground.
+        style={{
+          background: barBackground(0),
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        }}
       >
-        {isGradientFadeTheme(theme) && (
-          <div
-            ref={glassRef}
-            className={styles.glass}
-            style={{
-              background: barGlassBackground(0),
-              backdropFilter: GLASS_BACKDROP,
-              WebkitBackdropFilter: GLASS_BACKDROP,
-              maskImage: GLASS_MASK,
-              WebkitMaskImage: GLASS_MASK,
-            }}
-          />
-        )}
         <div className={`inset ${styles.bar}`}>
           <h2 className={styles.title}>{title}</h2>
           {info && (
