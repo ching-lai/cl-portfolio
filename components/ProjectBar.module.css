@@ -3,20 +3,24 @@
    matches .bar's min-height. */
 /* Stepped, not continuous — see the matching breakpoints on .bar below (and on
    Header.module.css's .header, which uses the same breakpoints but different,
-   intentionally-offset values). The bar chrome keeps stepping up on large displays
-   (75px ≥1920) even though the media content caps at 1880 — the two are deliberately
-   decoupled (see the .bar inset comment below). */
+   intentionally-offset values — the header stays at its own fixed height at every one
+   of these steps by design, only the bar itself steps down). The bar chrome keeps
+   stepping up on large displays (72px ≥1920) even though the media content caps at
+   1880 — the two are deliberately decoupled (see the .bar inset comment below).
+   1280–1919.98px (both steps below) is MacBook Air/Pro built-in screens — see the
+   large-display breakpoint comment further down for why that whole span is grouped
+   this way. */
 .spacer {
   height: 60px;
 }
 @media (min-width: 1280px) and (max-width: 1439.98px) {
-  .spacer { height: 56px; }
+  .spacer { height: 55px; }
 }
 @media (min-width: 1440px) and (max-width: 1919.98px) {
-  .spacer { height: 58px; }
+  .spacer { height: 55px; }
 }
 @media (min-width: 1920px) {
-  .spacer { height: 75px; }
+  .spacer { height: 72px; }
 }
 
 /* Locks directly below the fixed header (60px — keep in sync with Header.module.css)
@@ -86,13 +90,13 @@
   padding-block: var(--space-2);
 }
 @media (min-width: 1280px) and (max-width: 1439.98px) {
-  .bar { min-height: 56px; }
+  .bar { min-height: 55px; }
 }
 @media (min-width: 1440px) and (max-width: 1919.98px) {
-  .bar { min-height: 58px; }
+  .bar { min-height: 55px; }
 }
 @media (min-width: 1920px) {
-  .bar { min-height: 75px; }
+  .bar { min-height: 72px; }
 }
 
 /* Side inset pulled in from the shared .inset 80px to 36px for iPad-and-up widths
@@ -158,13 +162,21 @@
   .info { font-size: 29px; transform: translateY(4.93px); }
 }
 
-/* Mobile frame: 56px bar, 22px/20px type. translateY nudges scaled proportionally
-   from the desktop values (which were derived from the font's real ascent/descent
-   via canvas TextMetrics — see comment above) since the same font-metric asymmetry
-   applies at any size. */
+/* iPhone 14 Pro (393px portrait) and iPad Pro A1701 (834px portrait) both land in
+   this bucket — the type breakpoint below stays at the original 768px (iPad Mini and
+   phones only; type is unaffected on the A1701), but height alone is widened to 834
+   so the A1701 gets the same shorter bar as the phones despite being wider than the
+   mobile type breakpoint. */
+@media (max-width: 834px) {
+  .spacer { height: 54px; }
+  .bar { min-height: 54px; }
+}
+
+/* Mobile frame: 22px/20px type. translateY nudges scaled proportionally from the
+   desktop values (which were derived from the font's real ascent/descent via canvas
+   TextMetrics — see comment above) since the same font-metric asymmetry applies at
+   any size. */
 @media (max-width: 768px) {
-  .spacer { height: 56px; }
-  .bar { min-height: 56px; }
   .title { font-size: 22px; transform: translateY(3.26px); }
   .info { font-size: 20px; transform: translateY(3.4px); }
 }

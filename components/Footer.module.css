@@ -20,6 +20,19 @@
   .footer { padding-inline: 36px !important; }
 }
 
+/* Large external displays only: both edges track the header's --header-gap + 36px
+   chrome column instead of .inset's --content-gap + 80px — start so
+   Instagram/LinkedIn/X line up with the header logo and each project bar's title,
+   end so "Built with Claude Code" lines up with the mail icon and each bar's Info
+   link. Same alignment ProjectBar's .bar and Header's .header already use for their
+   own edges. */
+@media (min-width: 1920px) {
+  .footer {
+    padding-inline-start: calc(var(--header-gap) + 36px) !important;
+    padding-inline-end: calc(var(--header-gap) + 36px) !important;
+  }
+}
+
 /* gap tuned so top-to-top spacing between links measures 49px, matching Figma
    (Instagram/LinkedIn/X were at document y 17335/17384/17433 — 49px apart). */
 .links {

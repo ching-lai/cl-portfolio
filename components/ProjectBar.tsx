@@ -31,9 +31,9 @@ interface ProjectBarProps {
 // solid fill with no gradient in light mode, no theme branching needed here.
 function barBackground(fraction: number): string {
   const bottomPct = Math.round(fraction * 100);
-  // Inner mix: top↔bottom of the gradient by scroll position. Outer mix folds in 3%
-  // transparent to land a 0.97 alpha frosted fill.
-  return `color-mix(in srgb, transparent 3%, color-mix(in srgb, var(--background-bottom) ${bottomPct}%, var(--background)))`;
+  // Inner mix: top↔bottom of the gradient by scroll position. Outer mix folds in 4%
+  // transparent to land a 0.96 alpha frosted fill.
+  return `color-mix(in srgb, transparent 4%, color-mix(in srgb, var(--background-bottom) ${bottomPct}%, var(--background)))`;
 }
 // How far (in px) before the *next* bar reaches its own lock point this one starts
 // covering, finishing exactly as the next bar arrives and covers it.
