@@ -50,6 +50,29 @@ function addDissolve(tl: gsap.core.Timeline, chars: Element[], budget: number) {
   });
 }
 
+// A link's hover/click target must die the instant its *own* characters start
+// visibly dissolving, not when the body text as a whole finishes — a link earlier
+// in the paragraph sits fully readable while a later one is already fading out
+// (the dissolve sweeps back-to-front across the whole paragraph, not link by
+// link). "Visibly" is pinned at 50% opacity: past that the word reads as gone
+// even though a translucent trace remains.
+const LINK_DISABLE_OPACITY = 0.5;
+
+/** Groups a flat char list by the nearest ancestor <a>, so each link's own fade
+ *  progress can be tracked independently of its neighbors. Chars with no anchor
+ *  ancestor (plain body text) are dropped — they have nothing to disable. */
+function groupCharsByLink(chars: Element[]): Map<HTMLAnchorElement, HTMLElement[]> {
+  const map = new Map<HTMLAnchorElement, HTMLElement[]>();
+  for (const char of chars) {
+    const anchor = char.closest("a");
+    if (!anchor) continue;
+    const group = map.get(anchor) ?? [];
+    group.push(char as HTMLElement);
+    map.set(anchor, group);
+  }
+  return map;
+}
+
 export function Hero() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const bgLeftRef = useRef<HTMLDivElement | null>(null);
@@ -71,9 +94,8 @@ export function Hero() {
   // as one connected sequence rather than two independent fades.
   const rebuildTextExit = useCallback(() => {
     const section = sectionRef.current;
-    const content = contentRef.current;
     const textExitDistance = textExitDistanceRef.current;
-    if (!section || !content || textExitDistance <= 0) return;
+    if (!section || textExitDistance <= 0) return;
 
     exitTimelineRef.current?.scrollTrigger?.kill();
     exitTimelineRef.current?.kill();
@@ -94,20 +116,36 @@ export function Hero() {
         start: "top top",
         end: `+=${textExitDistance}`,
         scrub: true,
-        // The dissolve only fades each split-character span's opacity — the <a>
-        // elements themselves stay full-opacity and full-size the whole time, so
-        // without this their hover/click targets remain live (and the underline
-        // hover animation still fires) even once the text has visually vanished.
-        // Flip the whole content block's hit-testing off exactly when the last
-        // character reaches 0 opacity, and back on if the user scrolls back up.
-        onUpdate: (self) => {
-          content.style.pointerEvents = self.progress >= 1 ? "none" : "auto";
-        },
       },
     });
     addDissolve(tl, bodyChars, 1);
     addDissolve(tl, headlineChars, 1);
     exitTimelineRef.current = tl;
+
+    // The dissolve only fades each split-character span's own opacity — the <a>
+    // elements themselves stay full-opacity and full-size the whole time, so
+    // without this their hover/click targets remain live (and the underline hover
+    // animation still fires) for as long as the word is on screen at all, even
+    // once it's mostly dissolved. Track each link's own characters independently
+    // (a link earlier in the paragraph is still fully readable while a later one
+    // is already fading, since the dissolve sweeps back-to-front across the whole
+    // body) and kill that link's hit-testing the moment ANY of its own characters
+    // crosses 50% opacity — reversing cleanly if the user scrolls back up, since
+    // this re-derives from live opacity every scrub frame rather than a one-way flag.
+    const linkGroups = groupCharsByLink(bodyChars);
+    const syncLinkHitTesting = () => {
+      linkGroups.forEach((chars, anchor) => {
+        const minOpacity = chars.reduce((min, char) => {
+          const raw = char.style.opacity;
+          const opacity = raw === "" ? 1 : parseFloat(raw);
+          return Math.min(min, Number.isNaN(opacity) ? 1 : opacity);
+        }, 1);
+        anchor.style.pointerEvents =
+          minOpacity <= LINK_DISABLE_OPACITY ? "none" : "auto";
+      });
+    };
+    tl.eventCallback("onUpdate", syncLinkHitTesting);
+    syncLinkHitTesting();
 
     // The bg-exit and parallax ScrollTriggers above are created synchronously on
     // mount, before SplitText's document.fonts.ready gate resolves. If the font swap
