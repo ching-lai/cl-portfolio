@@ -106,11 +106,35 @@ export function InfoModal({ title, content, onClose }: InfoModalProps) {
       if (e.key === "Escape") handleClose();
     };
     document.addEventListener("keydown", onKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    // body { overflow: hidden } alone doesn't reliably block background scroll on iOS
+    // Safari — it's a long-standing WebKit gap where a touch-scroll gesture can still
+    // reach the body underneath (this is what let the real page visibly scroll behind
+    // the modal on iPhone/iPad specifically, though not on desktop, where overflow:
+    // hidden alone works fine). Pinning body to position: fixed at its current scroll
+    // offset is the standard cross-platform-safe lock instead: there's no scroll
+    // position left on body for a stray touch gesture to move, on any engine.
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const previousPosition = body.style.position;
+    const previousTop = body.style.top;
+    const previousLeft = body.style.left;
+    const previousRight = body.style.right;
+    const previousOverflow = body.style.overflow;
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.overflow = "hidden";
+
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
+      body.style.position = previousPosition;
+      body.style.top = previousTop;
+      body.style.left = previousLeft;
+      body.style.right = previousRight;
+      body.style.overflow = previousOverflow;
+      window.scrollTo(0, scrollY);
     };
   }, [handleClose]);
 

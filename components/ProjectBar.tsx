@@ -34,16 +34,15 @@ function barBackground(fraction: number): string {
   return `color-mix(in srgb, transparent 3%, color-mix(in srgb, var(--background-bottom) ${bottomPct}%, var(--background)))`;
 }
 
-// Light-mode (gradient-fade) frosted-glass fill. Same gradient math as barBackground,
-// but folds in more transparency (~0.75 alpha instead of 0.97) so the .glass
-// layer's backdrop-filter blur actually shows through — a near-opaque fill hides
-// whatever is behind it and reads as a flat gradient, which is what light mode looked
-// like before. At this alpha the blurred, saturated page content behind the bar is
-// visible, giving a true frosted-glass look. Light's top === bottom, so the scroll
-// fraction has no color effect here; kept parameterized to mirror barBackground.
+// Light-mode (gradient-fade) frosted-glass fill: uniform #e6e6e6 at 0.90 alpha (light's
+// --background and --background-bottom are both #e6e6e6, so the gradient math is only
+// here to mirror barBackground's shape — the scroll fraction has no visible color
+// effect in light mode). Same gradient math as barBackground, but folds in a little
+// transparency so the .glass layer's backdrop-filter blur still shows through — a
+// fully opaque fill would hide it entirely.
 function barGlassBackground(fraction: number): string {
   const bottomPct = Math.round(fraction * 100);
-  return `color-mix(in srgb, transparent 25%, color-mix(in srgb, var(--background-bottom) ${bottomPct}%, var(--background)))`;
+  return `color-mix(in srgb, transparent 10%, color-mix(in srgb, var(--background-bottom) ${bottomPct}%, var(--background)))`;
 }
 // How far (in px) before the *next* bar reaches its own lock point this one starts
 // dimming, finishing at 50% opacity exactly as the next bar arrives and covers it.

@@ -30,9 +30,16 @@
   z-index: 1;
   top: calc(40px * var(--scale-1440));
   right: 5.556%;
+  /* Large external displays only — see the matching .panel override below for why:
+     keeps Close's right edge aligned with the header's mail icon, mirroring .panel's
+     left edge tracking the logo, the same --header-gap convention ProjectBar and
+     Header themselves use. */
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: calc(28px * var(--scale-1440));
+  /* Matches ProjectBar's .info exactly — same stepped (not continuously scaled)
+     sizes at the same breakpoints, since Close is the modal's equivalent of that
+     link. See ProjectBar.module.css's .info for the same three values. */
+  font-size: 25px;
   color: #232323;
   background: none;
   border: none;
@@ -72,7 +79,7 @@
 
 .accent {
   width: calc(34px * var(--scale-1440));
-  height: calc(8px * var(--scale-1440));
+  height: calc(7px * var(--scale-1440));
   background: #232323;
   margin-bottom: calc(32px * var(--scale-1440));
 }
@@ -102,6 +109,31 @@
   font-size: calc(23px * var(--scale-1440));
   line-height: calc(34px * var(--scale-1440));
   max-width: calc(737px * var(--scale-1440));
+}
+
+/* Large external displays only (NOT the 1280–1919.98px range, which covers MacBook
+   Air/Pro built-in screens — see the same breakpoint elsewhere, e.g.
+   ProjectBar.module.css). This is deliberately NOT about widening the text column —
+   .body's own max-width above is what keeps a readable ~13-15 words per line, and
+   stays untouched at every size. This is purely about *alignment*: past this
+   breakpoint, .panel switches from its percentage inset to the same
+   --header-gap + 36px padding Header and ProjectBar use for their own chrome, so the
+   title's left edge lines up with the header logo and (via .close's matching
+   override above) Close's right edge lines up with the mail icon — reading as one
+   column with the header, the same way the project bar already does. No separate
+   max-width needed here: the symmetric padding on a full-width box does the same job
+   .bar/.header rely on. */
+@media (min-width: 1920px) {
+  .panel {
+    max-width: none;
+    padding-inline: calc(var(--header-gap) + 36px);
+  }
+
+  .close {
+    right: calc(var(--header-gap) + 36px);
+    /* Matches ProjectBar's .info at the same breakpoint. */
+    font-size: 29px;
+  }
 }
 
 .roles {
