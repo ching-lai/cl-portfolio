@@ -120,6 +120,7 @@ export function VideoMedia({
   priority = false,
   feather = false,
   objectPosition,
+  matchSiblingHeight = false,
 }: MediaProps & {
   src: string;
   feather?: boolean;
@@ -129,13 +130,31 @@ export function VideoMedia({
    *  the frame itself staying put. Only affects clips whose cover-scaling overflows on
    *  that axis. */
   objectPosition?: string;
+  /** For a Row where this video sits next to an aspect-ratio-boxed image and the two
+   *  are meant to read as exactly the same height: independently computing each
+   *  box's height from its own width × aspect ratio only ever gets them *close*
+   *  (Figma's px measurements don't divide perfectly into the width percentages
+   *  here), and the sub-pixel gap becomes visible at large viewport widths where a
+   *  fraction of a percent is several real pixels. This drops the video's own
+   *  aspect-ratio sizing and stretches it to match the row's cross-axis height
+   *  instead (driven by its sibling's own aspect-ratio box, since .row uses
+   *  align-items: flex-start and this is the one item opting into align-self:
+   *  stretch) — the two are then height-identical and top/bottom-aligned by
+   *  construction, not by tuned numbers. object-fit: cover on the inner <video>
+   *  (unchanged) crops to fill whatever the resulting box turns out to be, same as
+   *  every other video on the site. */
+  matchSiblingHeight?: boolean;
 }) {
   const ref = useRevealOnScroll<HTMLDivElement>();
   return (
     <div
       ref={ref}
       className={`${styles.media} ${feather ? styles.feather : ""}`}
-      style={{ flex: `0 0 ${width}`, width, aspectRatio: aspect }}
+      style={
+        matchSiblingHeight
+          ? { flex: `0 0 ${width}`, width, alignSelf: "stretch" }
+          : { flex: `0 0 ${width}`, width, aspectRatio: aspect }
+      }
     >
       <VideoLoop
         src={src}

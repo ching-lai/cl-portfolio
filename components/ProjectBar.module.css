@@ -5,7 +5,7 @@
    Header.module.css's .header, which uses the same breakpoints but different,
    intentionally-offset values — the header stays at its own fixed height at every one
    of these steps by design, only the bar itself steps down). The bar chrome keeps
-   stepping up on large displays (72px ≥1920) even though the media content caps at
+   stepping up on large displays (67px ≥1920) even though the media content caps at
    1880 — the two are deliberately decoupled (see the .bar inset comment below).
    1280–1919.98px (both steps below) is MacBook Air/Pro built-in screens — see the
    large-display breakpoint comment further down for why that whole span is grouped
@@ -14,13 +14,13 @@
   height: 60px;
 }
 @media (min-width: 1280px) and (max-width: 1439.98px) {
-  .spacer { height: 55px; }
+  .spacer { height: 50px; }
 }
 @media (min-width: 1440px) and (max-width: 1919.98px) {
-  .spacer { height: 55px; }
+  .spacer { height: 50px; }
 }
 @media (min-width: 1920px) {
-  .spacer { height: 72px; }
+  .spacer { height: 67px; }
 }
 
 /* Locks directly below the fixed header (60px — keep in sync with Header.module.css)
@@ -90,13 +90,13 @@
   padding-block: var(--space-2);
 }
 @media (min-width: 1280px) and (max-width: 1439.98px) {
-  .bar { min-height: 55px; }
+  .bar { min-height: 50px; }
 }
 @media (min-width: 1440px) and (max-width: 1919.98px) {
-  .bar { min-height: 55px; }
+  .bar { min-height: 50px; }
 }
 @media (min-width: 1920px) {
-  .bar { min-height: 72px; }
+  .bar { min-height: 67px; }
 }
 
 /* Side inset pulled in from the shared .inset 80px to 36px for iPad-and-up widths
@@ -153,7 +153,7 @@
 
 /* Large external displays only (NOT the 1280–1919.98px range, which covers MacBook
    Air/Pro built-in screens — those keep the base 27px/25px sizes untouched): bump
-   title/Info type up 4px so it fills the taller 75px bar a bit more. translateY is
+   title/Info type up 4px so it fills the taller 67px bar a bit more. translateY is
    scaled by the same ratio as the font-size bump, since a given font's
    ascent/descent proportions (see the .title comment above) scale linearly with
    size. */
@@ -168,8 +168,8 @@
    so the A1701 gets the same shorter bar as the phones despite being wider than the
    mobile type breakpoint. */
 @media (max-width: 834px) {
-  .spacer { height: 54px; }
-  .bar { min-height: 54px; }
+  .spacer { height: 48px; }
+  .bar { min-height: 48px; }
 }
 
 /* Mobile frame: 22px/20px type. translateY nudges scaled proportionally from the

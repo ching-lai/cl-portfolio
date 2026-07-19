@@ -59,6 +59,11 @@ export function Byeeee() {
               width="28.472%"
               aspect="410 / 564"
               objectPosition="center calc(50% - 13px * var(--scale-1440))"
+              // Matches bye-mexico-city.jpg's height exactly (see the prop's comment
+              // in media.tsx) rather than relying on its own aspect ratio, which was
+              // only ever a near-match and visibly off by a couple px at large
+              // viewport widths.
+              matchSiblingHeight
             />
           </Row>
         </div>

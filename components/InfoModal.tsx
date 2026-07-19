@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TextReveal } from "@/components/TextReveal";
 import styles from "./InfoModal.module.css";
 
@@ -135,6 +136,17 @@ export function InfoModal({ title, content, onClose }: InfoModalProps) {
       body.style.right = previousRight;
       body.style.overflow = previousOverflow;
       window.scrollTo(0, scrollY);
+
+      // Toggling body to position: fixed and back changes document layout
+      // dimensions mid-flight, which leaves GSAP ScrollTrigger's cached
+      // start/end offsets for scrub-driven timelines (e.g. Hero's exit/parallax)
+      // stale relative to the restored geometry. Wait a frame for the style/
+      // scroll restore above to actually paint before refreshing — a single
+      // rAF can still land ahead of layout settling under production's faster,
+      // minified execution (this bug reproduced only in prod, not local dev).
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => ScrollTrigger.refresh());
+      });
     };
   }, [handleClose]);
 
