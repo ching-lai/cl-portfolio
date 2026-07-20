@@ -176,9 +176,11 @@
 /* iPhone 14 Pro and iPad Pro 9.7" (A1701) portrait: 100vh on iOS Safari measures the
    viewport as if the address bar/toolbar were hidden, so the bottom-pinned chevron
    renders below the actually-visible area on load and only appears mid-scroll.
-   Simplest fix is to just not show it at these two exact sizes; every other size
-   keeps the chevron as-is. */
-@media (width: 393px) and (height: 852px), (width: 768px) and (height: 1024px) {
+   Matched on width alone (not height) since Safari's dynamic toolbar shrinks the
+   *reported* viewport height whenever it's visible, so a height-inclusive query
+   never reliably matches on-device. Simplest fix is to just not show it at these
+   two exact widths; every other size keeps the chevron as-is. */
+@media (width: 393px), (width: 768px) {
   .chevron {
     display: none;
   }
