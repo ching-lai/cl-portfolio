@@ -173,14 +173,16 @@
   }
 }
 
-/* iPhone 14 Pro and iPad Pro 9.7" (A1701) portrait: 100vh on iOS Safari measures the
-   viewport as if the address bar/toolbar were hidden, so the bottom-pinned chevron
-   renders below the actually-visible area on load and only appears mid-scroll.
-   Matched on width alone (not height) since Safari's dynamic toolbar shrinks the
-   *reported* viewport height whenever it's visible, so a height-inclusive query
-   never reliably matches on-device. Simplest fix is to just not show it at these
-   two exact widths; every other size keeps the chevron as-is. */
-@media (width: 393px), (width: 768px) {
+/* iPhone 14 Pro and iPad Pro 9.7" (A1701, both orientations): 100vh on iOS Safari
+   measures the viewport as if the address bar/toolbar were hidden, so the
+   bottom-pinned chevron renders below the actually-visible area on load and only
+   appears mid-scroll. Matched on width alone (not height) since Safari's dynamic
+   toolbar shrinks the *reported* viewport height whenever it's visible, so a
+   height-inclusive query never reliably matches on-device. 393/768/1024 are this
+   iPhone's width and this iPad's portrait/landscape widths respectively — note
+   768/1024 aren't unique to this iPad, so any other device or resized browser
+   window that happens to land on those exact widths will also lose the chevron. */
+@media (width: 393px), (width: 768px), (width: 1024px) {
   .chevron {
     display: none;
   }
