@@ -174,12 +174,12 @@
 }
 
 /* iPhone 14 Pro and iPad Pro 9.7" (A1701) portrait: 100vh on iOS Safari measures the
-   viewport as if the address bar/toolbar were hidden, so on load (toolbar visible)
-   the hero renders taller than what's actually visible and the bottom-pinned chevron
-   falls below the fold. Only these two exact viewports get 100dvh (the real visible
-   area) so the chevron lands on-screen; every other size keeps the 100vh above. */
+   viewport as if the address bar/toolbar were hidden, so the bottom-pinned chevron
+   renders below the actually-visible area on load and only appears mid-scroll.
+   Simplest fix is to just not show it at these two exact sizes; every other size
+   keeps the chevron as-is. */
 @media (width: 393px) and (height: 852px), (width: 768px) and (height: 1024px) {
-  .hero {
-    min-height: 100dvh;
+  .chevron {
+    display: none;
   }
 }
