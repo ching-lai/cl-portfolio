@@ -10,9 +10,9 @@ const IMAGES = "/images/uber-visa-local-offers";
 const INFO = {
   subtitle: "Product Design Lead",
   body: [
-    "The Uber Visa Local Offers program turns everyday spending into Uber Cash. Users earn Uber Cash by using any Visa card on file at a participating merchant, enrolling once and getting a push notification seconds after they swipe. For merchants, it created a new way to acquire customers, increase sales, and build loyalty. I led the design of every version of this product.",
+    "The Uber Visa Local Offers program turns everyday spending into Uber Cash. Users earn Uber Cash by using any Visa card on file at a participating merchant, with a push notification arriving seconds after they swipe. For merchants, it created a new way to acquire customers, increase sales, and build loyalty. I led the design of every version of this product.",
     <Fragment key="commercial">
-      The first version launched in phases across San Francisco and Los Angeles, earning coverage from TechCrunch, Refinery29, and The Points Guy, along with a{" "}
+      The first version launched in phases across San Francisco and Los Angeles, using per-merchant enrollment. It earned coverage from TechCrunch, Refinery29, and The Points Guy, along with a{" "}
       <a
         className={`${infoStyles.bodyLink} draw-underline`}
         data-label="commercial"
@@ -23,7 +23,7 @@ const INFO = {
       >
         commercial
       </a>{" "}
-      featuring Kaley Cuoco. After the Uber app rebrand, I led a redesign that moved Visa from per-merchant enrollment to a single one-time enrollment, a major UX improvement.
+      featuring Kaley Cuoco. After the Uber app rebrand, I led a redesign that replaced per-merchant enrollment with a single one-time enrollment, a major UX improvement.
     </Fragment>,
   ],
   rolesLeft: ["UX Design", "Visual Design"],
