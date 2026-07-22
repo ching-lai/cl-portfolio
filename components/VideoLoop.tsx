@@ -17,7 +17,18 @@ export function VideoLoop({ src, poster, className, style, priority = false }: V
   const [active, setActive] = useState(priority);
 
   useEffect(() => {
-    if (priority) return;
+    // `priority` is no longer a static prop — UberVisaCard flips it from false to
+    // true once it has resolved (client-side) which of its always-mounted
+    // desktop/mobile layouts is actually visible. So a priority video must ACTIVATE
+    // when priority becomes true, not merely have been initialized active: without
+    // this setActive, a video that mounted at priority=false (isMobile still
+    // unresolved) and then had priority flip true would never load — the observer
+    // branch below is skipped for it, but nothing turned `active` on. That was the
+    // "videos don't load on mobile / iPad Pro" regression.
+    if (priority) {
+      setActive(true);
+      return;
+    }
     const video = videoRef.current;
     if (!video) return;
 
