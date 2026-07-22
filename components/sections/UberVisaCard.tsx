@@ -1,11 +1,14 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ProjectBar } from "@/components/ProjectBar";
 import { Row, ImageMedia, VideoMedia, Stage, StageImage, StageVideo } from "@/components/media";
 import { useTheme } from "@/lib/theme";
 import styles from "./section.module.css";
 import infoStyles from "@/components/InfoModal.module.css";
+
+// Matches the .desktop-only/.mobile-only breakpoint in globals.css.
+const MOBILE_QUERY = "(max-width: 768px)";
 
 const VIDEOS = "/videos/uber-visa-card";
 const IMAGES = "/images/uber-visa-card";
@@ -33,12 +36,31 @@ const INFO = {
   rolesRight: ["Prototyping", "Motion Design", "Design Research"],
 };
 
-// First project section — media loads eagerly rather than lazily.
+// First project section — media loads eagerly rather than lazily. Both the
+// .desktop-only and .mobile-only variants below are always mounted (CSS display
+// alone toggles which is visible — see globals.css), so unconditionally marking
+// every video/image in both `priority` doubled up the eager network load: 8 videos
+// (autoPlay + preload="auto") and 10 images all fetching at once regardless of which
+// set was actually on screen. On fast wifi that's invisible; on a mobile connection
+// it was competing with the hero's own font/text load for bandwidth. isMobile starts
+// `null` (matching SSR, where matchMedia doesn't exist) so neither branch is
+// `priority` until the first client effect determines which one is actually visible.
 export function UberVisaCard() {
   const { theme } = useTheme();
   // Only this hero clip has a light-theme variant (swapped via the header's
   // sun/moon toggle); every other video on the page is theme-agnostic.
   const heroVideo = theme === "light" ? "uber-visa-card-light.mp4" : "uber-visa-card.mp4";
+
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+  useEffect(() => {
+    const mql = window.matchMedia(MOBILE_QUERY);
+    setIsMobile(mql.matches);
+    const handleChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener("change", handleChange);
+    return () => mql.removeEventListener("change", handleChange);
+  }, []);
+  const desktopPriority = isMobile === false;
+  const mobilePriority = isMobile === true;
 
   return (
     <section id="uber-visa-card" className={styles.section}>
@@ -48,16 +70,16 @@ export function UberVisaCard() {
       <div className={styles.body}>
         {/* Hero video: 732/1440 = 50.833%, centered */}
         <Row>
-          <VideoMedia src={`${VIDEOS}/${heroVideo}`} width="50.833%" aspect="732 / 565" priority feather />
+          <VideoMedia src={`${VIDEOS}/${heroVideo}`} width="50.833%" aspect="732 / 565" priority={desktopPriority} feather />
         </Row>
 
         {/* Three portrait videos: 331/1440 = 22.986%, reduced 10% then another 5% = 19.653%.
             .body's flex gap already gives 48px below; +80px margin adds the requested
             80px on top of that. */}
         <Row gap="6.875%" style={{ marginBottom: "calc(80px * var(--scale-1440))" }}>
-          <VideoMedia src={`${VIDEOS}/uber-visa-card-instant-provisioning.mp4`} width="19.653%" aspect="331 / 588" priority />
-          <VideoMedia src={`${VIDEOS}/uber-visa-card-redemption.mp4`} width="19.653%" aspect="331 / 588" priority />
-          <VideoMedia src={`${VIDEOS}/uber-visa-card-menu-prop.mp4`} width="19.653%" aspect="331 / 588" priority />
+          <VideoMedia src={`${VIDEOS}/uber-visa-card-instant-provisioning.mp4`} width="19.653%" aspect="331 / 588" priority={desktopPriority} />
+          <VideoMedia src={`${VIDEOS}/uber-visa-card-redemption.mp4`} width="19.653%" aspect="331 / 588" priority={desktopPriority} />
+          <VideoMedia src={`${VIDEOS}/uber-visa-card-menu-prop.mp4`} width="19.653%" aspect="331 / 588" priority={desktopPriority} />
         </Row>
 
         {/* Five product PNGs, edge-to-edge (no gap): 240/1440 = 16.667% each */}
@@ -70,7 +92,7 @@ export function UberVisaCard() {
               width="16.667%"
               aspect="240 / 420"
               fit="contain"
-              priority
+              priority={desktopPriority}
               sizes="17vw"
             />
           ))}
@@ -83,15 +105,15 @@ export function UberVisaCard() {
           402-wide / 1002-tall content stage (section height 1058 minus the 56px bar). */}
       <div className="mobile-only">
         <Stage aspect="402 / 1002">
-          <StageVideo src={`${VIDEOS}/${heroVideo}`} left="4.975%" top="0.998%" width="90.05%" height="27.944%" priority />
-          <StageVideo src={`${VIDEOS}/uber-visa-card-instant-provisioning.mp4`} left="4.975%" top="29.741%" width="27.363%" height="19.561%" priority />
-          <StageVideo src={`${VIDEOS}/uber-visa-card-redemption.mp4`} left="36.318%" top="29.741%" width="27.363%" height="19.561%" priority />
-          <StageVideo src={`${VIDEOS}/uber-visa-card-menu-prop.mp4`} left="67.662%" top="29.741%" width="27.363%" height="19.561%" priority />
-          <StageImage src={`${IMAGES}/uber-visa-card-1.png`} alt="Uber Visa Card product photo 1" left="4.975%" top="52.495%" width="30.1%" height="21.058%" fit="contain" priority sizes="31vw" />
-          <StageImage src={`${IMAGES}/uber-visa-card-2.png`} alt="Uber Visa Card product photo 2" left="35.075%" top="52.495%" width="30.1%" height="21.158%" fit="contain" priority sizes="31vw" />
-          <StageImage src={`${IMAGES}/uber-visa-card-3.png`} alt="Uber Visa Card product photo 3" left="64.925%" top="52.495%" width="30.1%" height="21.058%" fit="contain" priority sizes="31vw" />
-          <StageImage src={`${IMAGES}/uber-visa-card-4.png`} alt="Uber Visa Card product photo 4" left="17.91%" top="74.85%" width="30.1%" height="21.158%" fit="contain" priority sizes="31vw" />
-          <StageImage src={`${IMAGES}/uber-visa-card-5.png`} alt="Uber Visa Card product photo 5" left="51.99%" top="74.85%" width="30.1%" height="21.158%" fit="contain" priority sizes="31vw" />
+          <StageVideo src={`${VIDEOS}/${heroVideo}`} left="4.975%" top="0.998%" width="90.05%" height="27.944%" priority={mobilePriority} />
+          <StageVideo src={`${VIDEOS}/uber-visa-card-instant-provisioning.mp4`} left="4.975%" top="29.741%" width="27.363%" height="19.561%" priority={mobilePriority} />
+          <StageVideo src={`${VIDEOS}/uber-visa-card-redemption.mp4`} left="36.318%" top="29.741%" width="27.363%" height="19.561%" priority={mobilePriority} />
+          <StageVideo src={`${VIDEOS}/uber-visa-card-menu-prop.mp4`} left="67.662%" top="29.741%" width="27.363%" height="19.561%" priority={mobilePriority} />
+          <StageImage src={`${IMAGES}/uber-visa-card-1.png`} alt="Uber Visa Card product photo 1" left="4.975%" top="52.495%" width="30.1%" height="21.058%" fit="contain" priority={mobilePriority} sizes="31vw" />
+          <StageImage src={`${IMAGES}/uber-visa-card-2.png`} alt="Uber Visa Card product photo 2" left="35.075%" top="52.495%" width="30.1%" height="21.158%" fit="contain" priority={mobilePriority} sizes="31vw" />
+          <StageImage src={`${IMAGES}/uber-visa-card-3.png`} alt="Uber Visa Card product photo 3" left="64.925%" top="52.495%" width="30.1%" height="21.058%" fit="contain" priority={mobilePriority} sizes="31vw" />
+          <StageImage src={`${IMAGES}/uber-visa-card-4.png`} alt="Uber Visa Card product photo 4" left="17.91%" top="74.85%" width="30.1%" height="21.158%" fit="contain" priority={mobilePriority} sizes="31vw" />
+          <StageImage src={`${IMAGES}/uber-visa-card-5.png`} alt="Uber Visa Card product photo 5" left="51.99%" top="74.85%" width="30.1%" height="21.158%" fit="contain" priority={mobilePriority} sizes="31vw" />
         </Stage>
       </div>
     </section>

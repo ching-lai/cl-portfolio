@@ -117,21 +117,17 @@
      var(--scale-1440))` is 28px up to 1440px wide and grows past it exactly like a
      `1.9444vw` value would (28/1440 = 1.9444%), which is the same math the
      percentage-based media widths already use. */
-  /* The ratio 100vw/1440px must NOT be written as a literal `calc(100vw / 1440px)`:
-     dividing a length by a length is a recent calc() addition that older Safari
-     (e.g. the 2017 iPad Pro's) rejects, which made this whole value invalid there —
-     collapsing every `calc(Npx * var(--scale-1440))` on the page (hero type/width,
-     header icon gap, all InfoModal padding/spacing/type) to 0 or the inherited
-     default. `tan(atan2(100vw, 1440px))` yields the identical unitless ratio using
-     only trigonometric functions (Safari 15.4+, and every other current engine),
-     with no length-by-length division. The @property registration above is the
-     final backstop if even that is unsupported.
-     The `min(100vw, --content-max)` clamps the scale so it STOPS growing once the
-     viewport passes the content cap (1880px → scale ≈1.31): past that the design was
-     reading as too large/full-bleed on big monitors, so type, spacing, icons and the
-     percentage-based media all freeze at their --content-max size and the content sits
-     in a centered column instead (see --content-max / --content-gap and .body/.inset). */
-  --scale-1440: max(1, tan(atan2(min(100vw, var(--content-max)), 1440px)));
+  /* Below the 1440 design canvas this MUST be exactly 1 (see the multi-line comment
+     above) — literally, not "1 up to floating-point error from a trig round-trip".
+     A plain `1` is also what real mobile Safari has been observed rendering as some
+     multiple of instead (header icons ballooning well past their 21.6-28px design
+     size on an iPhone 16 Plus/14 Pro, while everything sized with a literal px value
+     stayed correct) — i.e. the tan(atan2(...)) trick below, however sound on paper,
+     is not safe to let mobile browsers evaluate at all. So the un-media-queried
+     value here is the plain literal, and the trig formula only takes over inside the
+     min-width override further down, scoped to exactly the viewports that actually
+     need continuous growth past 1440px. */
+  --scale-1440: 1;
   /* Above these widths the layout stops scaling up and centers in a fixed column,
      with the page background filling the sides — the chrome (hero art, page gradient,
      project-bar + header backgrounds) still bleeds full width. Content — media,
@@ -139,7 +135,7 @@
      chrome (logo + sun/mail) is allowed a little wider, out to 1920. Each *-gap is the
      per-side letterbox margin, staying 0 until its cap is exceeded. Dividing by the
      unitless 2 is valid on every engine (unlike the length/length division that broke
-     --scale-1440 above). */
+     --scale-1440 above), so these don't need the same min-width gating. */
   --content-max: 1880px;
   --content-gap: max(0px, calc((100vw - var(--content-max)) / 2));
   --header-gap: max(0px, calc((100vw - 1920px) / 2));
@@ -155,7 +151,34 @@
      there — hero text is UNCHANGED on those screens, only large external/desktop
      displays (above --content-max) get the extra growth. */
   --hero-max: calc(var(--content-max) * 1.2);
-  --hero-scale: max(1, tan(atan2(min(100vw, var(--hero-max)), 1440px)));
+  /* Same literal-1 reasoning as --scale-1440 above — see that comment. */
+  --hero-scale: 1;
+}
+
+/* Only above the 1440 design canvas do --scale-1440/--hero-scale need to grow past 1
+   — see the literal-1 defaults above for why real mobile Safari must never evaluate
+   this trig formula at all. */
+@media (min-width: 1441px) {
+  :root {
+    /* The ratio 100vw/1440px must NOT be written as a literal `calc(100vw / 1440px)`:
+       dividing a length by a length is a recent calc() addition that older Safari
+       (e.g. the 2017 iPad Pro's) rejects, which made this whole value invalid there —
+       collapsing every `calc(Npx * var(--scale-1440))` on the page (hero type/width,
+       header icon gap, all InfoModal padding/spacing/type) to 0 or the inherited
+       default. `tan(atan2(100vw, 1440px))` yields the identical unitless ratio using
+       only trigonometric functions (Safari 15.4+, and every other current engine),
+       with no length-by-length division. The @property registration above is the
+       final backstop if even that is unsupported.
+       The `min(100vw, --content-max)` clamps the scale so it STOPS growing once the
+       viewport passes the content cap (1880px → scale ≈1.31): past that the design was
+       reading as too large/full-bleed on big monitors, so type, spacing, icons and the
+       percentage-based media all freeze at their --content-max size and the content sits
+       in a centered column instead (see --content-max / --content-gap and .body/.inset). */
+    --scale-1440: max(1, tan(atan2(min(100vw, var(--content-max)), 1440px)));
+    /* See --hero-scale's own definition above for what this is and why it differs
+       from --scale-1440; only the trig formula itself needs to be gated here. */
+    --hero-scale: max(1, tan(atan2(min(100vw, var(--hero-max)), 1440px)));
+  }
 }
 
 :root[data-theme="light"] {
