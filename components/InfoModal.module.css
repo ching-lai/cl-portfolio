@@ -187,6 +187,20 @@
 .bodyLink:global(.draw-underline)::after {
   clip-path: inset(0 0 0 0);
 }
+/* When a body link wraps to a second line (only at narrow widths — e.g. the Uber Gift
+   Cards "Oh What a Night" link on iPhone 14 Pro), GSAP SplitText clones the <a> once
+   per line, and every clone's ::after re-renders the FULL data-label starting at that
+   fragment's left. On the trailing line the overlay text is therefore offset from the
+   real text, so text-decoration-skip-ink's per-descender gaps fall mid-word and read as
+   a broken underline. A solid underline (no ink-skipping) is still clipped to each
+   clone's own box, so it stays continuous and correctly bounded on every line. Gated to
+   touch (hover: none), the only place this link ever wraps, so hover-capable/desktop —
+   always single-line here — keeps its identical skip-ink underline. */
+@media (hover: none) {
+  .bodyLink:global(.draw-underline)::after {
+    text-decoration-skip-ink: none;
+  }
+}
 
 /* Personal projects show a site link in place of the My Roles block. */
 .link {
