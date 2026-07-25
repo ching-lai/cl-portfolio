@@ -218,6 +218,46 @@
   --info-underline: #5c8f8f;
 }
 
+/* Dark-mode palette. The modal is light frosted glass by default (see the pinned
+   light values on .close/.link/.bodyLink above); in dark mode it instead becomes a
+   solid #0A181D panel with #efefef text throughout, except the subtitle (the job
+   title) and the "My Roles" words, which are #353535. Scoped via :root[data-theme]
+   (set on <html> by lib/theme; the modal portals to document.body underneath it),
+   matching the :root[data-theme="light"] pattern already used in section.module.css. */
+:root[data-theme="dark"] .scrollArea {
+  background: #0a181d;
+}
+
+:root[data-theme="dark"] .overlay {
+  color: #efefef;
+}
+
+:root[data-theme="dark"] .accent {
+  background: #efefef;
+}
+
+:root[data-theme="dark"] .subtitle {
+  color: #c4c4c4;
+}
+
+:root[data-theme="dark"] .rolesColumn {
+  color: #c4c4c4;
+}
+
+:root[data-theme="dark"] .close {
+  color: #efefef;
+  --foreground: #efefef;
+}
+
+:root[data-theme="dark"] .link {
+  color: #efefef;
+  --foreground: #efefef;
+}
+
+:root[data-theme="dark"] .bodyLink {
+  --foreground: #efefef;
+}
+
 /* No mobile Figma frame exists yet for this modal — fixed px sizing (not scaled)
    keeps it readable on small screens in the meantime. */
 @media (max-width: 768px) {

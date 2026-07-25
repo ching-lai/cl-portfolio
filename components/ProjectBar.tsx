@@ -55,6 +55,14 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
   const lineRef = useRef<HTMLDivElement>(null);
   const dimRef = useRef<HTMLDivElement>(null);
   const [isInfoOpen, setIsInfoOpen] = useState(false);
+  // Read inside the scroll loop's apply() to freeze the bar's paint while the modal is
+  // open. Opening the modal pins document.body to position: fixed (InfoModal's iOS
+  // scroll lock), which collapses window.scrollY to 0 and fires a scroll event — that
+  // would otherwise drive apply() to repaint this bar's gradient (now sampled at
+  // scrollY 0) and re-wash its .dim overlay, visibly shifting the bars' color as the
+  // modal wipes up over them. A ref (not the state value) so the always-mounted effect
+  // sees the live flag without being torn down and recreated on open/close.
+  const isInfoOpenRef = useRef(false);
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -80,6 +88,12 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
     let appliedHeaderHeight = -1;
 
     const apply = () => {
+      // Modal open: keep this bar's current gradient/dim/position frozen (see
+      // isInfoOpenRef above) rather than repainting it against the pinned-body scroll
+      // geometry. The modal covers the viewport, so nothing here needs updating until
+      // it closes and the real scroll offset is restored.
+      if (isInfoOpenRef.current) return;
+
       // .header's height and .line's own (.bar's min-height) both scale past 1440px
       // (see --scale-1440 in globals.css), so both are measured live rather than
       // assumed to be a fixed 60.
@@ -236,7 +250,14 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
                  "Info Info". */
               data-label="Info"
               aria-label="Info"
-              onClick={infoContent ? () => setIsInfoOpen(true) : undefined}
+              onClick={
+                infoContent
+                  ? () => {
+                      isInfoOpenRef.current = true;
+                      setIsInfoOpen(true);
+                    }
+                  : undefined
+              }
             >
               Info
             </button>
@@ -250,7 +271,10 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
           <InfoModal
             title={infoTitle ?? title}
             content={infoContent}
-            onClose={() => setIsInfoOpen(false)}
+            onClose={() => {
+              isInfoOpenRef.current = false;
+              setIsInfoOpen(false);
+            }}
           />,
           document.body
         )}
