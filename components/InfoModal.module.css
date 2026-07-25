@@ -225,7 +225,7 @@
    (set on <html> by lib/theme; the modal portals to document.body underneath it),
    matching the :root[data-theme="light"] pattern already used in section.module.css. */
 :root[data-theme="dark"] .scrollArea {
-  background: #0a181d;
+  background: #111c20;
 }
 
 :root[data-theme="dark"] .overlay {
