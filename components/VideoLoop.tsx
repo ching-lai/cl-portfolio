@@ -44,6 +44,16 @@ export function VideoLoop({ src, poster, className, style, priority = false }: V
     const video = videoRef.current;
     if (!video) return;
     if (active) {
+      // iOS/WKWebView (X's in-app browser is one) forces a video FULLSCREEN when
+      // .play() is called programmatically unless the element is *actually* muted
+      // and inline. React's `muted` JSX prop sets the property unreliably and never
+      // renders the attribute, so re-assert both imperatively on the DOM node before
+      // playing — otherwise scrolling a section into view blows the clip up to
+      // full screen inside embedded browsers.
+      video.muted = true;
+      video.playsInline = true;
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
       // Re-run on src changes too (e.g. the light/dark theme toggle swapping a
       // clip) — changing the src attribute alone doesn't make an already-loaded
       // <video> pick it up without an explicit reload.
