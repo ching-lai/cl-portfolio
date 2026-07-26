@@ -372,8 +372,8 @@ export function Hero() {
           >
             Zinio
           </a>
-          . I built a reputation for launching 0-to-1 initiatives that grew into
-          scaled products and dedicated teams. You can find me drawing{" "}
+          . I launched multiple 0-to-1 initiatives that grew into scaled
+          products and dedicated teams. You can find me drawing{" "}
           <a
             href="https://www.mutatingmonsters.com/"
             target="_blank"
