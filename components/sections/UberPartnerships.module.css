@@ -52,6 +52,18 @@
   max-height: calc(43.06px * var(--scale-1440));
 }
 
+/* Optical alignment: the apple mark sits low in its box, so nudge it up. 2px on
+   smaller sizes, 3px on MacBook Air/Pro laptops (>=1280px) and larger. */
+.apple {
+  transform: translateY(-2px);
+}
+
+@media (min-width: 1280px) {
+  .apple {
+    transform: translateY(-3px);
+  }
+}
+
 /* Mobile frame: 4 logos per row (not 5), smaller max-height, tighter gaps, and much
    less vertical breathing room around the wall than desktop. */
 @media (max-width: 768px) {

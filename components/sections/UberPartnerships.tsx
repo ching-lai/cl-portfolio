@@ -50,7 +50,7 @@ export function UberPartnerships() {
                 width={logo.width}
                 height={logo.height}
                 sizes="20vw"
-                className={logoStyles.logo}
+                className={`${logoStyles.logo}${logo.name === "apple" ? ` ${logoStyles.apple}` : ""}`}
                 style={{ objectFit: "contain" }}
               />
             </div>
