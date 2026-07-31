@@ -7,6 +7,7 @@ import { Sun } from "./icons/Sun";
 import { Moon } from "./icons/Moon";
 import { EMAIL } from "@/lib/social-links";
 import { useTheme } from "@/lib/theme";
+import { subscribeHeaderShift, getHeaderShift } from "@/lib/header-reveal";
 import styles from "./Header.module.css";
 
 // How far (in px) before the first project bar's lock point the fade starts.
@@ -53,6 +54,22 @@ export function Header() {
       window.removeEventListener("resize", applyFade);
     };
   }, [theme]);
+
+  // ── Scroll-direction hide/reveal (see lib/header-reveal.ts) ─────────────────
+  // Slide the whole header up by its own height as the shared shift goes 0→1, and
+  // back down as it returns to 0. translateY(-100%) always clears it exactly,
+  // whatever the breakpoint's header height is. Remove this effect (and the import)
+  // to fully revert. When the feature flag is off, getHeaderShift() stays 0 and this
+  // just parks the header at translateY(0) — its original position.
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const applyShift = () => {
+      header.style.transform = `translateY(${-getHeaderShift() * 100}%)`;
+    };
+    applyShift();
+    return subscribeHeaderShift(applyShift);
+  }, []);
 
   const scrollHome = () => {
     document.getElementById("home")?.scrollIntoView({ behavior: "smooth" });

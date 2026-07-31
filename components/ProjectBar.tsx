@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { InfoModal, type InfoContent } from "@/components/InfoModal";
 import { useTheme } from "@/lib/theme";
+import { subscribeHeaderShift, getHeaderShift } from "@/lib/header-reveal";
 import styles from "./ProjectBar.module.css";
 
 interface ProjectBarProps {
@@ -100,12 +101,23 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
       const headerHeight = header?.getBoundingClientRect().height ?? 60;
       const barHeight = line.getBoundingClientRect().height;
 
+      // ── Scroll-direction hide/reveal (see lib/header-reveal.ts) ───────────────
+      // As the header slides up (shift 0→1) it vacates its band at the top, so the
+      // bar should lock higher — right up to viewport top:0 when the header is fully
+      // hidden. `effectiveHeaderHeight` is the header's currently-visible height; it
+      // drives BOTH the lock threshold below and the transform that shifts a locked
+      // bar up with the header, keeping the absolute→fixed handoff seamless at every
+      // shift value. With the feature off, getHeaderShift() is 0 → effectiveHeaderHeight
+      // === headerHeight and the transform is translateY(0): original behavior exactly.
+      const shiftPx = getHeaderShift() * headerHeight;
+      const effectiveHeaderHeight = headerHeight - shiftPx;
+
       // "Where would this bar be if it just scrolled normally" is wherever its spacer
       // (which sits in normal flow at the section's top) currently renders on screen.
-      // Once that reaches the header, the bar should lock; while it's still below, the
-      // bar rides the page natively in its pre-lock absolute state.
+      // Once that reaches the (visible) header, the bar should lock; while it's still
+      // below, the bar rides the page natively in its pre-lock absolute state.
       const naturalTop = spacer.getBoundingClientRect().top;
-      const shouldLock = naturalTop <= headerHeight;
+      const shouldLock = naturalTop <= effectiveHeaderHeight;
 
       // Flip the position only on a genuine state change (or if the header height
       // changed under a locked bar, e.g. on resize past a breakpoint). absolute→fixed
@@ -127,6 +139,13 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
         }
       }
 
+      // ── Scroll-direction hide/reveal (see lib/header-reveal.ts) ───────────────
+      // A locked bar sits at top: headerHeight; translate it up by the header's shift
+      // so its visible top is effectiveHeaderHeight — i.e. it rises to viewport 0 as
+      // the header fully hides. Pre-lock bars ride the page in flow and get no shift.
+      // shiftPx is 0 with the feature off, so this is a harmless translateY(0).
+      line.style.transform = shouldLock ? `translateY(${-shiftPx}px)` : "";
+
       // Wash this bar's .dim overlay (see DIM_MAX_DARK / DIM_MAX_LIGHT above) as the
       // next bar approaches its lock point and paints over this one — dark washes
       // part way to black, light washes all the way to #e6e6e6 so it reads as the
@@ -135,7 +154,7 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
       let fullyCovered = false;
       if (nextSection) {
         const nextNaturalTop = nextSection.getBoundingClientRect().top;
-        const distanceUntilNextLocks = nextNaturalTop - headerHeight;
+        const distanceUntilNextLocks = nextNaturalTop - effectiveHeaderHeight;
         const progress = Math.min(1, Math.max(0, (FADE_DISTANCE - distanceUntilNextLocks) / FADE_DISTANCE));
         dimOpacity = progress * (theme === "light" ? DIM_MAX_LIGHT : DIM_MAX_DARK);
         fullyCovered = progress >= 1;
@@ -211,10 +230,17 @@ export function ProjectBar({ title, info = true, infoContent, infoTitle }: Proje
       kick();
     };
     window.addEventListener("resize", onResize);
+    // ── Scroll-direction hide/reveal (see lib/header-reveal.ts) ─────────────────
+    // The shift keeps easing for a few frames after scrolling stops (or when it
+    // toggles from a scroll that this bar's own idle loop has already parked), so
+    // re-apply on every shift change to follow the header up/down. No-op with the
+    // feature off. Remove this line + its cleanup to fully revert.
+    const unsubscribeShift = subscribeHeaderShift(apply);
     return () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
       window.removeEventListener("scroll", kick);
       window.removeEventListener("resize", onResize);
+      unsubscribeShift();
     };
   }, [theme]);
 
