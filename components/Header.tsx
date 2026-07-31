@@ -93,7 +93,7 @@ export function Header() {
           aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         >
           {theme === "dark" ? (
-            <Sun size={24} className={styles.icon} aria-hidden="true" />
+            <Sun size={24} className={`${styles.icon} ${styles.sun}`} aria-hidden="true" />
           ) : (
             <Moon size={24} className={`${styles.icon} ${styles.moon}`} aria-hidden="true" />
           )}
