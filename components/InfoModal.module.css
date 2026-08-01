@@ -43,7 +43,7 @@
   color: #232323;
   background: none;
   border: none;
-  cursor: pointer;
+  cursor: var(--cursor-dot-link);
   /* Underline + hover redraw come from the shared global `.draw-underline`. The modal
      is always a light frosted panel (dark text on white glass) regardless of the page
      theme, so pin the redraw palette to the light values here rather than letting it

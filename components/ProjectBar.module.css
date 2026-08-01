@@ -147,7 +147,7 @@
   background: none;
   border: none;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--cursor-dot-link);
   white-space: nowrap;
 }
 

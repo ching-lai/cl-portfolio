@@ -95,6 +95,14 @@
   /* The color the Info-link underline draws in on hover before settling back to
      --foreground (see .info::after in ProjectBar.module.css). */
   --info-underline: #AAFBFB;
+  /* Custom pointer: an 8px filled dot. --cursor-dot is the resting cursor
+     (foreground color); --cursor-dot-link is shown over links/interactive text
+     (the same accent that --info-underline draws in). PNG data-URIs, not SVG —
+     Safari's SVG-cursor support is unreliable and would silently fall back to the
+     keyword. Hotspot 4 4 centers the 8×8 dot on the real pointer position. The
+     light-theme values below override the two colors. */
+  --cursor-dot: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAPElEQVR42mN4//49AxBrAPFmIP4OxZuhYgwwyc9A/B8Ng8Q0GKCq/+PAmxmgRuJS8J0oBQStIOhIvN4EAGoo5X2WLs4CAAAAAElFTkSuQmCC") 4 4, auto;
+  --cursor-dot-link: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAPElEQVR42mNY9fs3AxBrAPFmIP4OxZuhYgwwyc9A/B8Ng8Q0GKCq/+PAmxmgRuJS8J0oBQStIOhIvN4EAILu2j3ulL4TAAAAAElFTkSuQmCC") 4 4, pointer;
   --font-body: "Brandon Grotesque", Arial, Helvetica, sans-serif;
   --grid-columns: 12;
   --grid-margin: clamp(24px, 6vw, 80px);
@@ -193,10 +201,19 @@
   --bar-dim-color: #e6e6e6;
   --overscroll-band: #E0E0E0;
   --info-underline: #5C8F8F;
+  /* Light-theme dot colors — see --cursor-dot in :root above. */
+  --cursor-dot: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAO0lEQVR42mNQVlZmAGININ4MxN+heDNUjAEm+RmI/6NhkJgGA1T1fxx4MwPUSFwKvhOlgKAVBB2J15sANQdMfTgTG3QAAAAASUVORK5CYII=") 4 4, auto;
+  --cursor-dot-link: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAO0lEQVR42mOI6e9nAGININ4MxN+heDNUjAEm+RmI/6NhkJgGA1T1fxx4MwPUSFwKvhOlgKAVBB2J15sAfXSQvQzDWAEAAAAASUVORK5CYII=") 4 4, pointer;
 }
 
 * { box-sizing: border-box; padding: 0; margin: 0; }
 html { height: 100%; }
+/* Custom 8px-dot pointer everywhere (cursor inherits, so this cascades to the whole
+   page), switching to the accent dot over links. The per-element `cursor: pointer`
+   rules in the component modules are set to these same vars so the dot stays
+   consistent over buttons/icons instead of reverting to the OS arrow/hand. */
+html { cursor: var(--cursor-dot); }
+a, .draw-underline { cursor: var(--cursor-dot-link); }
 /* overflow-x: clip (not hidden) — hidden on html/body forces body into its own
    scroll container, which silently breaks position: sticky for every descendant. */
 html, body { max-width: 100vw; overflow-x: clip; }
