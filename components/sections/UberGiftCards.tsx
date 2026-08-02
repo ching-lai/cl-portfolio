@@ -25,7 +25,7 @@ const INFO = {
       >
         &quot;Oh What a Night&quot; commercial
       </a>
-      . Expanding into Brazil, our research surfaced a distinct gifting culture that shaped how we positioned and localized the product as Uber Pré-Pago.
+      . In Brazil, our research showed that gift cards just didn&apos;t feel like a real gift there. People wanted something more like a prepaid voucher, so we repositioned it as Uber Pré-Pago.
     </Fragment>,
   ],
   rolesLeft: ["UX Design", "Visual Design", "Illustration"],

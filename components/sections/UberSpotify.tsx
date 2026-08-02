@@ -12,7 +12,7 @@ const IMAGES = "/images/uber-spotify";
 const INFO = {
   subtitle: "Product Designer",
   body: [
-    "I created the first version of the Spotify music integration in the Uber app in 2014. At a time when competition with Lyft was fierce, we drove differentiation through personalization, collaborating closely with Spotify's engineering and marketing teams to bring it to life.",
+    "I created the first version of the Spotify music integration in the Uber app in 2014. At a time when competition with Lyft was fierce, we drove differentiation through personalization. We worked closely with Spotify's engineering and marketing teams to bring it to life.",
     <Fragment key="commercial">
       The launch spanned 10 cities with 10 launch concerts and became both a technology and culture story, earning coverage from WIRED, TechCrunch, and TIME. Travis Kalanick called it &quot;the first time we&apos;ve personalized the experience inside the car,&quot; while Spotify CEO Daniel Ek described Uber as &quot;an obvious fit.&quot; The &quot;Your Ride. Your Music.&quot; campaign later won a Clio Music Grand Award, and we produced a{" "}
       <a
