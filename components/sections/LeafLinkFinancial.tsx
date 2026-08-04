@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ProjectBar } from "@/components/ProjectBar";
-import { Row, ImageMedia, Stage, StageImage } from "@/components/media";
+import { Row, ImageMedia, Stage, StageImage, IMAGE_QUALITY } from "@/components/media";
 import styles from "./section.module.css";
 import llf from "./LeafLinkFinancial.module.css";
 
@@ -31,6 +31,7 @@ export function LeafLinkFinancial() {
                 alt="LeafLink Financial buyer dashboard on laptop and phone"
                 fill
                 sizes="44vw"
+                quality={IMAGE_QUALITY}
                 style={{ objectFit: "contain" }}
               />
             </div>
@@ -43,6 +44,7 @@ export function LeafLinkFinancial() {
                 alt="LeafLink Financial seller dashboard on laptop and phone"
                 fill
                 sizes="44vw"
+                quality={IMAGE_QUALITY}
                 style={{ objectFit: "contain" }}
               />
             </div>

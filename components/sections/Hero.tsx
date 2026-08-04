@@ -311,6 +311,9 @@ export function Hero() {
             fill
             priority
             sizes="66vw"
+            // Decorative texture on the LCP path — the default quality (75) is
+            // visually indistinguishable here and keeps first paint lean.
+            quality={75}
             style={{ objectFit: "cover" }}
           />
         </div>
@@ -323,6 +326,8 @@ export function Hero() {
             fill
             priority
             sizes="28vw"
+            // Decorative texture on the LCP path — see note on the left background.
+            quality={75}
             style={{ objectFit: "cover" }}
           />
         </div>

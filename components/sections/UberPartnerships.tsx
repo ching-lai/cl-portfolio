@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { ProjectBar } from "@/components/ProjectBar";
+import { IMAGE_QUALITY } from "@/components/media";
 import { useTheme } from "@/lib/theme";
 import styles from "./section.module.css";
 import logoStyles from "./UberPartnerships.module.css";
@@ -50,6 +51,7 @@ export function UberPartnerships() {
                 width={logo.width}
                 height={logo.height}
                 sizes="20vw"
+                quality={IMAGE_QUALITY}
                 className={`${logoStyles.logo}${logo.name === "apple" ? ` ${logoStyles.apple}` : ""}`}
                 style={{ objectFit: "contain" }}
               />

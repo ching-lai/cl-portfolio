@@ -10,6 +10,19 @@ import styles from "./sections/section.module.css";
 gsap.registerPlugin(ScrollTrigger);
 
 /**
+ * Site-wide image quality for next/image's WebP/AVIF re-encode. The framework
+ * default (75) softens high-contrast UI screenshots (chart bars, tight text) enough
+ * to read as "blurry" on 2× Retina panels. 85 is the quality/size sweet spot: it
+ * clears that softening while adding only ~20% to PNGs and ~35% to photos over 75,
+ * where 95 would nearly double total image weight (photos balloon 2–7×) for no
+ * visible gain. Every Image on the site uses this — the shared media wrappers below
+ * default to it, and the few raw <Image> usages (hero art, dashboards, logos) pass
+ * it explicitly. Whitelisted in next.config (images.qualities); Next 16 rejects any
+ * quality value not listed there.
+ */
+export const IMAGE_QUALITY = 85;
+
+/**
  * Rises up and fades in the first time an element scrolls into view (Apple's
  * "Explore the lineup" product grid is the reference) — shared by every media
  * wrapper below so every image/video on the site gets the same treatment. Purely
@@ -93,7 +106,8 @@ export function ImageMedia({
   fit = "cover",
   priority = false,
   sizes = "(max-width: 900px) 100vw, 50vw",
-}: MediaProps & { src: string; alt: string }) {
+  quality = IMAGE_QUALITY,
+}: MediaProps & { src: string; alt: string; quality?: number }) {
   const ref = useRevealOnScroll<HTMLDivElement>();
   return (
     <div
@@ -107,6 +121,7 @@ export function ImageMedia({
         fill
         priority={priority}
         sizes={sizes}
+        quality={quality}
         style={{ objectFit: fit }}
       />
     </div>
@@ -199,6 +214,7 @@ export function StageImage({
   priority = false,
   sizes = "(max-width: 900px) 100vw, 50vw",
   opacity,
+  quality = IMAGE_QUALITY,
 }: PlacedProps & {
   src: string;
   alt: string;
@@ -206,6 +222,7 @@ export function StageImage({
   priority?: boolean;
   sizes?: string;
   opacity?: number;
+  quality?: number;
 }) {
   const ref = useRevealOnScroll<HTMLDivElement>();
   return (
@@ -216,6 +233,7 @@ export function StageImage({
         fill
         priority={priority}
         sizes={sizes}
+        quality={quality}
         style={{ objectFit: fit, opacity }}
       />
     </div>
