@@ -112,6 +112,16 @@
   .logo[data-logo="baidu"] {
     transform: scale(0.97);
   }
+  .logo[data-logo="topps"] {
+    transform: scale(0.92);
+  }
+  /* apple keeps its optical translateY nudge (see .apple below) plus the scale. */
+  .logo[data-logo="apple"] {
+    transform: translateY(-2px) scale(0.985);
+  }
+  .logo[data-logo="foursquare"] {
+    transform: scale(1.06);
+  }
   .logo[data-logo="opentable"] {
     transform: scale(1.22);
   }
