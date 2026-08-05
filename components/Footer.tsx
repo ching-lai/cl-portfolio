@@ -36,7 +36,6 @@ export function Footer() {
           X
         </a>
       </div>
-      <p className={styles.credit}>Built with Claude Code</p>
     </footer>
   );
 }

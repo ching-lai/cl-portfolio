@@ -23,9 +23,8 @@
 /* Large external displays only: both edges track the header's --header-gap + 36px
    chrome column instead of .inset's --content-gap + 80px — start so
    Instagram/LinkedIn/X line up with the header logo and each project bar's title,
-   end so "Built with Claude Code" lines up with the mail icon and each bar's Info
-   link. Same alignment ProjectBar's .bar and Header's .header already use for their
-   own edges. */
+   end tracking the mail icon and each bar's Info link. Same alignment ProjectBar's
+   .bar and Header's .header already use for their own edges. */
 @media (min-width: 1920px) {
   .footer {
     padding-inline-start: calc(var(--header-gap) + 36px) !important;
@@ -49,16 +48,8 @@
   width: fit-content;
 }
 
-.credit {
-  font-size: 20px;
-  font-weight: 400;
-  color: #888;
-}
-
-/* Mobile frame: 20px links (top-to-top spacing measures ~44px vs desktop's 49px),
-   18px credit text. */
+/* Mobile frame: 20px links (top-to-top spacing measures ~44px vs desktop's 49px). */
 @media (max-width: 768px) {
   .link { font-size: 20px; }
   .links { gap: 16px; }
-  .credit { font-size: 18px; }
 }
