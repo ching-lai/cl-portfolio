@@ -81,4 +81,41 @@
   .logo {
     max-height: 23px;
   }
+
+  /* Phones only (iPhone 14 Pro ~393px, iPhone 17 Plus ~430px). At this width every
+     logo is pinned to the same width by max-width: 70%, so equal-width marks with
+     different visual weights read unbalanced. These transform: scale() nudges are
+     optical-weight corrections only — they don't affect layout, so the 4-per-row grid
+     is unchanged, and they sit below the 768px breakpoint so iPad (834px+) is untouched.
+     transform-origin stays centered, keeping each mark centered in its cell. */
+  .logo[data-logo="visa"] {
+    transform: scale(0.79);
+  }
+  .logo[data-logo="amex"] {
+    transform: scale(0.9);
+  }
+  .logo[data-logo="paytm"] {
+    transform: scale(0.9);
+  }
+  .logo[data-logo="google"] {
+    transform: scale(0.93);
+  }
+  .logo[data-logo="hilton"] {
+    transform: scale(0.9);
+  }
+  .logo[data-logo="reserve"] {
+    transform: scale(0.95);
+  }
+  .logo[data-logo="samsung"] {
+    transform: scale(0.97);
+  }
+  .logo[data-logo="baidu"] {
+    transform: scale(0.97);
+  }
+  .logo[data-logo="opentable"] {
+    transform: scale(1.22);
+  }
+  .logo[data-logo="united"] {
+    transform: scale(1.12);
+  }
 }

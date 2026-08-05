@@ -48,6 +48,7 @@ export function UberPartnerships() {
               <Image
                 src={`${IMAGES}/${logo.name}${suffix}.png`}
                 alt={logo.name}
+                data-logo={logo.name}
                 width={logo.width}
                 height={logo.height}
                 sizes="20vw"
