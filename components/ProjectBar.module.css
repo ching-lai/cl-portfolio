@@ -150,6 +150,14 @@
   cursor: var(--cursor-dot-link);
   white-space: nowrap;
 }
+/* Slightly heavier than the shared 1px/3px to suit the 25px Info label. Applied to both
+   the resting underline (base) and the hover-redraw overlay (::after); :global(.draw-underline)
+   raises specificity above the global rule so these win. */
+.info:global(.draw-underline),
+.info:global(.draw-underline)::after {
+  text-decoration-thickness: 1.1px;
+  text-underline-offset: 3.1px;
+}
 
 /* Large external displays only (NOT the 1280–1919.98px range, which covers MacBook
    Air/Pro built-in screens — those keep the base 27px/25px sizes untouched): bump

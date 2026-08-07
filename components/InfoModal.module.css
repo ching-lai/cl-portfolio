@@ -52,6 +52,14 @@
   --foreground: #232323;
   --info-underline: #5c8f8f;
 }
+/* Slightly heavier than the shared 1px/3px to suit the 25px Close label. Applied to both
+   the resting underline (base) and the hover-redraw overlay (::after); :global(.draw-underline)
+   raises specificity above the global rule so these win. */
+.close:global(.draw-underline),
+.close:global(.draw-underline)::after {
+  text-decoration-thickness: 1.1px;
+  text-underline-offset: 3.1px;
+}
 
 /* The actual frosted-glass + scroll layer. backdrop-filter is applied inline (see
    InfoModal.tsx) rather than here — Turbopack's Lightning CSS strips it from
@@ -240,18 +248,25 @@
   color: #c4c4c4;
 }
 
+/* On the dark modal panel the hover-redraw accent must match the hero's dark-mode
+   accent (--info-underline: #AAFBFB, the global dark value) rather than the light-glass
+   teal (#5c8f8f) the base rules pin — those base values are for the default light panel,
+   and only --foreground was flipped for dark mode here originally. */
 :root[data-theme="dark"] .close {
   color: #efefef;
   --foreground: #efefef;
+  --info-underline: #AAFBFB;
 }
 
 :root[data-theme="dark"] .link {
   color: #efefef;
   --foreground: #efefef;
+  --info-underline: #AAFBFB;
 }
 
 :root[data-theme="dark"] .bodyLink {
   --foreground: #efefef;
+  --info-underline: #AAFBFB;
 }
 
 /* No mobile Figma frame exists yet for this modal — fixed px sizing (not scaled)
