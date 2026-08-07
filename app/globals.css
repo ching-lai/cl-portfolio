@@ -291,6 +291,11 @@ a { color: inherit; text-decoration: none; }
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+  /* Draw one solid line. The default (skip-ink: auto) breaks the underline around
+     any glyph that comes near it — at this 3px offset that's the antialiased edges
+     of ordinary letters (the e/r in Uber, a/f in LeafLink), not just descenders —
+     producing the "tiny inconsistent gaps" the underline is meant to avoid. */
+  text-decoration-skip-ink: none;
 }
 /* 0-specificity (via :where) so a target that sets its own position keeps it — the
    InfoModal's Close button is position: fixed and must stay pinned to the viewport.
@@ -318,6 +323,7 @@ a { color: inherit; text-decoration: none; }
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
+  text-decoration-skip-ink: none;
   text-decoration-color: var(--foreground);
   -webkit-text-fill-color: transparent;
   clip-path: inset(0 100% 0 0);
