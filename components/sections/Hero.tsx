@@ -135,13 +135,26 @@ export function Hero() {
     const linkGroups = groupCharsByLink(bodyChars);
     const syncLinkHitTesting = () => {
       linkGroups.forEach((chars, anchor) => {
-        const minOpacity = chars.reduce((min, char) => {
+        let minOpacity = 1;
+        let sumOpacity = 0;
+        for (const char of chars) {
           const raw = char.style.opacity;
-          const opacity = raw === "" ? 1 : parseFloat(raw);
-          return Math.min(min, Number.isNaN(opacity) ? 1 : opacity);
-        }, 1);
+          const parsed = raw === "" ? 1 : parseFloat(raw);
+          const opacity = Number.isNaN(parsed) ? 1 : parsed;
+          minOpacity = Math.min(minOpacity, opacity);
+          sumOpacity += opacity;
+        }
         anchor.style.pointerEvents =
           minOpacity <= LINK_DISABLE_OPACITY ? "none" : "auto";
+        // The underline is a single overlay on the <a> (see Hero.module.css), not part
+        // of the split characters, so the dissolve tween — which only touches the
+        // character opacities — leaves it fully lit. Fade it here in step with the
+        // average of its own characters so it disappears together with the word rather
+        // than hanging in the air as a detached line once the letters are gone.
+        anchor.style.setProperty(
+          "--hero-underline-opacity",
+          String(chars.length ? sumOpacity / chars.length : 1)
+        );
       });
     };
     tl.eventCallback("onUpdate", syncLinkHitTesting);

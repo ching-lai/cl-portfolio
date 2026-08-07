@@ -87,21 +87,25 @@
   line-height: calc(46px * var(--hero-scale));
 }
 
-.body a {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-  cursor: var(--cursor-dot-link);
+/* The link underline is the shared global `.draw-underline::after` overlay — one
+   continuous, un-split text run — revealed at rest here (globally it only shows on
+   hover). The <a>'s own text-decoration can't be used: SplitText (TextReveal) wraps
+   every character of the link in its own display: inline-block div for the
+   letter-dissolve, and an underline cannot paint as one unbroken line across atomic
+   inline-block boxes. Applied per character (the old `.body a div` approach) it drew
+   a separate segment under each letter, and because the letter boxes have fractional
+   widths the segments don't abut exactly — leaving hairline gaps at the seams that
+   move with zoom, device pixel ratio, and browser. The overlay sits above the split
+   characters and ignores their boxes entirely, so it stays continuous. Its opacity
+   tracks the link's own characters (--hero-underline-opacity, set in Hero.tsx) so it
+   still fades out with them during the scroll dissolve rather than lingering as a
+   detached line. Same overlay approach as InfoModal's .bodyLink. */
+.body :global(.draw-underline) {
+  text-decoration: none;
 }
-
-/* SplitText (TextReveal) wraps every word/character of the link text in its own
-   display: inline-block div for the letter-dissolve animation. Underlines don't
-   propagate through atomic inline-level boxes like inline-block, so without this the
-   <a>'s own text-decoration never actually paints — the link is still clickable, but
-   visually indistinguishable from plain text. Re-applying the decoration directly to
-   each of those divs makes every character draw its own underline segment instead. */
-.body a div {
-  text-decoration: inherit;
+.body :global(.draw-underline)::after {
+  clip-path: inset(0 0 0 0);
+  opacity: var(--hero-underline-opacity, 1);
 }
 
 /* Pinned toward the bottom of the hero, horizontally centered. 44px frame around the

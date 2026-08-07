@@ -184,22 +184,18 @@
      and they don't need this. */
   text-decoration: none;
 }
+/* Reveal the ::after underline at rest (globally it only draws on hover). The overlay
+   underline is kept solid — no ink-skipping — by the global `.draw-underline::after`
+   rule (globals.css). That solidity matters here beyond the usual descender case: when a
+   body link wraps to a second line at narrow widths (e.g. the Uber Gift Cards "Oh What a
+   Night" link on iPhone 14 Pro), GSAP SplitText clones the <a> once per line and every
+   clone's ::after re-renders the FULL data-label from that fragment's own left edge, so
+   on the trailing line the overlay is offset from the real text — any per-descender
+   ink-skipping would then fall mid-word and read as a broken underline. Each clone's line
+   stays clipped to its own box, so the solid overlay remains continuous and correctly
+   bounded on every line. */
 .bodyLink:global(.draw-underline)::after {
   clip-path: inset(0 0 0 0);
-}
-/* When a body link wraps to a second line (only at narrow widths — e.g. the Uber Gift
-   Cards "Oh What a Night" link on iPhone 14 Pro), GSAP SplitText clones the <a> once
-   per line, and every clone's ::after re-renders the FULL data-label starting at that
-   fragment's left. On the trailing line the overlay text is therefore offset from the
-   real text, so text-decoration-skip-ink's per-descender gaps fall mid-word and read as
-   a broken underline. A solid underline (no ink-skipping) is still clipped to each
-   clone's own box, so it stays continuous and correctly bounded on every line. Gated to
-   touch (hover: none), the only place this link ever wraps, so hover-capable/desktop —
-   always single-line here — keeps its identical skip-ink underline. */
-@media (hover: none) {
-  .bodyLink:global(.draw-underline)::after {
-    text-decoration-skip-ink: none;
-  }
 }
 
 /* Personal projects show a site link in place of the My Roles block. */
