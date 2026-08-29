@@ -9,7 +9,7 @@ const IMAGES = "/images/leaflink-financial";
 const INFO = {
   subtitle: "Senior Product Designer",
   body: [
-    "LeafLink is a B2B marketplace providing order management, financial, and logistics solutions to licensed cannabis businesses, handling over $4.5B in annual wholesale orders. As the founding product designer for LeafLink Financial, I defined and launched the first user experiences for the company's B2B payments and trade-credit products, the financing tools that let brands and growers get paid on delivery while giving dispensaries the flexibility to pay on net terms. This established the design foundation for a new fintech business line, one that scaled into LeafLink's largest revenue-generating business.",
+    "LeafLink is a B2B marketplace providing order management, financial, and logistics solutions to licensed cannabis businesses, handling over $5B in annual wholesale orders. As the founding product designer for LeafLink Financial, I defined and launched the first user experiences for the company's B2B payments and trade-credit products, the financing tools that let brands and growers get paid on delivery while giving dispensaries the flexibility to pay on net terms. This established the design foundation for a new fintech business line, one that scaled into LeafLink's largest revenue-generating business.",
   ],
   rolesLeft: ["UX Design", "Visual Design", "Data Visualization"],
   rolesRight: ["Prototyping", "Illustration"],
