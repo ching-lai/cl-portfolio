@@ -6,16 +6,6 @@ export function Footer() {
     <footer className={`inset ${styles.footer}`}>
       <div className={styles.links}>
         <a
-          href={SOCIAL_LINKS.instagram}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${styles.link} draw-underline`}
-          data-label="Instagram"
-          aria-label="Instagram"
-        >
-          Instagram
-        </a>
-        <a
           href={SOCIAL_LINKS.linkedin}
           target="_blank"
           rel="noopener noreferrer"
