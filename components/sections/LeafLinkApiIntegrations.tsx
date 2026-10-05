@@ -7,7 +7,7 @@ const IMAGES = "/images/leaflink-api-int";
 const INFO = {
   subtitle: "Senior Product Designer",
   body: [
-    "As the founding designer for LeafLink's API & Integrations team, I led the design of the company's developer platform and integration ecosystem. I designed the self-service application management experience, developer onboarding flows, CSV import/export tooling, and integrations with industry-critical systems such as Metrc. My work helped extend LeafLink beyond a marketplace into a connected platform serving more than 12,000 cannabis businesses and over $5B in annual transaction volume.",
+    "As the founding designer for LeafLink's API & Integrations team, I led the design of the company's developer platform and integration ecosystem. I designed the self-service application management experience, developer onboarding flows, CSV import/export tooling, and integrations with industry-critical systems such as Metrc. My work helped extend LeafLink beyond a marketplace into a connected platform serving more than 12,000 cannabis businesses and over $4.5B in annual transaction volume.",
   ],
   rolesLeft: ["UX Design", "Visual Design", "Prototyping"],
   rolesRight: [],
